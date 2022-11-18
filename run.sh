@@ -1,0 +1,1 @@
+docker build -f Dockerfile.dev -t karteldev . && docker compose -f docker-compose-dev.yml up
