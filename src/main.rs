@@ -6,9 +6,12 @@ use teloxide::prelude::{Bot, Message, ResponseResult};
 
 #[tokio::main]
 async fn main() {
-    let bot_token = env::var("BOT_TOKEN").unwrap_or_else(|_| String::from(""));
+    let bot_token = env::var("BOT_TOKEN").unwrap_or(String::from(""));
+    let sentry_dsn = env::var("SENTRY_DSN").unwrap_or(String::from(""));
 
     // TODO: open sqlite database here
+
+    let _guard = sentry::init(sentry_dsn);
     let bot = Bot::new(bot_token);
 
     teloxide::repl(bot, handler).await;
