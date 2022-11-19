@@ -1,9 +1,0 @@
-# syntax=docker/dockerfile:1
-FROM rust:1.65.0-slim-bullseye as build-env
-WORKDIR /app
-COPY . .
-RUN --mount=type=cache,target=/usr/local/cargo/registry cargo build
-
-FROM debian:bullseye-slim as run-env
-COPY --from=build-env /app/target/debug/kartel /usr/bin/kartel
-CMD kartel
