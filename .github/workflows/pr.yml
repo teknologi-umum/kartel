@@ -7,7 +7,7 @@ jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
-    container: rust:1.63.0-bullseye
+    container: rust:1-bullseye
     timeout-minutes: 20
     steps:
       - name: Checkout code
@@ -24,7 +24,7 @@ jobs:
           extra_args: --debug --only-verified
 
       - name: Prerequisite
-        run: apt-get install -y make sqlite3 curl ca-certificates openssl
+        run: apt-get update && apt-get upgrade -y && apt-get install -y make sqlite3 curl ca-certificates openssl
 
       - name: Build
         run: make build
