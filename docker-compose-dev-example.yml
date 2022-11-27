@@ -1,7 +1,0 @@
-version: "3.9"
-services:
-  kartel-app:
-    image: karteldev
-    restart: unless-stopped
-    environment:
-      - "TELOXIDE_TOKEN=yadda"
