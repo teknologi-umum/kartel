@@ -1,4 +1,4 @@
-use rusqlite::Connection;
+use rusqlite::{params, Connection};
 
 pub struct PointEntry {
     pub user_id: i64,
@@ -14,12 +14,6 @@ pub struct Points {
 pub struct ModelError {
     pub message: String,
     pub query: String,
-}
-
-impl ModelError {
-    pub fn new(message: String, query: String) -> Self {
-        ModelError { message, query }
-    }
 }
 
 pub struct Model {
@@ -45,13 +39,14 @@ impl Model {
             CREATE INDEX IF NOT EXISTS idx_topic ON points (topic);
             COMMIT;";
 
-        return match self.database.execute_batch(query.clone()) {
-            Ok(..) => (),
-            Err(e) => ModelError {
-                message: e,
+        if let Err(err) = self.database.execute_batch(query) {
+            return Err(ModelError {
+                message: err.to_string(),
                 query: query.into(),
-            },
-        };
+            });
+        }
+
+        Ok(())
     }
 
     pub fn put_point(
@@ -60,7 +55,7 @@ impl Model {
         user_id: i64,
         user_name: String,
         point: i64,
-    ) -> Result<i64, ModelError> {
+    ) -> Result<usize, ModelError> {
         let query = "INSERT INTO points \
             (topic, user_id, user_name, point, created_at, updated_at) \
             VALUES \
@@ -70,52 +65,92 @@ impl Model {
                 point = point + ?, \
                 updated_at = date()";
 
-        return match self.database.execute::<String, i64, String, i64, i64>(
-            query.clone(),
-            [topic, user_id, user_name, point, point],
-        ) {
-            Ok(..) => (),
-            Err(e) => ModelError {
-                message: e,
-                query: query.into(),
-            },
-        };
+        match self
+            .database
+            .execute(query, params![topic, user_id, user_name, point])
+        {
+            Ok(updated) => Ok(updated),
+            Err(err) => {
+                return Err(ModelError {
+                    message: err.to_string(),
+                    query: query.into(),
+                });
+            }
+        }
     }
 
     pub async fn get_points_by_topic(&self, topic: String) -> Result<Points, ModelError> {
         let query = "SELECT user_id, user_name, point FROM points WHERE topic = ?";
 
-        let mut stmt = self.database.prepare(query.clone());
-        let topics_iter = stmt.query_map([topic], |row| {
+        let mut stmt = match self.database.prepare(query) {
+            Ok(stmt) => stmt,
+            Err(err) => {
+                return Err(ModelError {
+                    message: err.to_string(),
+                    query: query.into(),
+                })
+            }
+        };
+
+        let topics_iter = match stmt.query_map([&topic], |row| {
             Ok(PointEntry {
                 user_id: row.get(0)?,
                 user_name: row.get(1)?,
                 points: row.get(2)?,
             })
-        })?;
+        }) {
+            Ok(topics) => topics,
+            Err(err) => {
+                return Err(ModelError {
+                    message: err.to_string(),
+                    query: query.into(),
+                })
+            }
+        };
 
         let mut topics_vec: Vec<PointEntry> = Vec::new();
         for topic in topics_iter {
-            topics_vec.push(topic);
+            if let Ok(t) = topic {
+                topics_vec.push(t)
+            }
         }
 
-        Points {
+        Ok(Points {
             topic,
             entries: topics_vec,
-        }
+        })
     }
 
     pub async fn get_topics(&self) -> Result<Vec<String>, ModelError> {
         let query = "SELECT topic FROM points";
 
-        let mut stmt = self.database.prepare(query.clone());
-        let topics_iter = stmt.query_map([], |row| row.get(0))?;
+        let mut stmt = match self.database.prepare(&query) {
+            Ok(stmt) => stmt,
+            Err(err) => {
+                return Err(ModelError {
+                    message: err.to_string(),
+                    query: query.into(),
+                })
+            }
+        };
+
+        let topics_iter = match stmt.query_map([], |row| row.get(0)) {
+            Ok(topics) => topics,
+            Err(err) => {
+                return Err(ModelError {
+                    message: err.to_string(),
+                    query: query.into(),
+                })
+            }
+        };
 
         let mut topics_vec: Vec<String> = Vec::new();
         for topic in topics_iter {
-            topics_vec.push(topic);
+            if let Ok(t) = topic {
+                topics_vec.push(t)
+            }
         }
 
-        topics_vec
+        Ok(topics_vec)
     }
 }
