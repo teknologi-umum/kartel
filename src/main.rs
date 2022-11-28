@@ -1,9 +1,10 @@
 mod commands;
+mod model;
 
 use commands::Commands;
 use rusqlite::Connection;
 use std::env;
-use teloxide::prelude::{Bot, Message, ResponseResult};
+use teloxide::prelude::*;
 
 #[tokio::main]
 async fn main() {
@@ -15,7 +16,7 @@ async fn main() {
     let _guard = sentry::init(sentry_dsn);
     let bot = Bot::new(bot_token);
 
-    teloxide::repl(bot, handler).await;
+    Commands::repl(bot, handler).await;
 }
 
 async fn handler(bot: Bot, msg: Message, cmd: Commands) -> ResponseResult<()> {
