@@ -1,3 +1,5 @@
+use crate::model::Model;
+
 pub struct CommandHandler {
     model: Model,
 }

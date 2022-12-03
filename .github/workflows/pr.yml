@@ -31,3 +31,8 @@ jobs:
 
       - name: Test
         run: make test
+
+      - name: Collect coverage
+        run: grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing -o ./target/debug/coverage/
+
+      - uses: codecov/codecov-action@v3

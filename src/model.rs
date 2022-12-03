@@ -60,28 +60,25 @@ impl Model {
         point: i64,
     ) -> Result<i64, ModelError> {
         let query = r#"INSERT INTO points 
-            (topic, user_id, user_name, point, created_at, updated_at
+            (topic, user_id, user_name, point, created_at, updated_at)
             VALUES
             (?, ?, ?, ?, date(), date())
-            RETURNING point
             ON CONFLICT (topic, user_id)
             DO UPDATE SET
                 point = point + ?,
                 updated_at = date()
             RETURNING point"#;
 
-        match self
-            .database
-            .query_row(query, params![topic, user_id, user_name, point], |row| {
-                row.get(0)
-            }) {
+        match self.database.query_row(
+            query,
+            params![topic, user_id, user_name, point, point],
+            |row| row.get(0),
+        ) {
             Ok(updated) => Ok(updated),
-            Err(err) => {
-                return Err(ModelError {
-                    message: err.to_string(),
-                    query: query.into(),
-                });
-            }
+            Err(err) => Err(ModelError {
+                message: err.to_string(),
+                query: query.into(),
+            }),
         }
     }
 
@@ -115,10 +112,8 @@ impl Model {
         };
 
         let mut topics_vec: Vec<PointEntry> = Vec::new();
-        for topic in topics_iter {
-            if let Ok(t) = topic {
-                topics_vec.push(t)
-            }
+        for topic in topics_iter.flatten() {
+            topics_vec.push(topic);
         }
 
         Ok(Points {
@@ -151,10 +146,8 @@ impl Model {
         };
 
         let mut topics_vec: Vec<String> = Vec::new();
-        for topic in topics_iter {
-            if let Ok(t) = topic {
-                topics_vec.push(t)
-            }
+        for topic in topics_iter.flatten() {
+            topics_vec.push(topic);
         }
 
         Ok(topics_vec)
@@ -166,23 +159,31 @@ mod tests {
     use crate::model::Model;
     use rusqlite::Connection;
 
-    const DATABASE: Connection = Connection::open_in_memory().unwrap();
-
     #[test]
     fn test_migrate() {
-        let model = Model::new(DATABASE);
+        let database: Connection = Connection::open_in_memory().unwrap();
+        let model = Model::new(database);
 
         model.migrate().unwrap();
     }
 
     #[test]
     fn test_put_new_point() {
-        let model = Model::new(DATABASE);
+        let database: Connection = Connection::open_in_memory().unwrap();
+
+        let model = Model::new(database);
+        model.migrate().unwrap();
 
         let res = model
             .put_point("dadjoke".into(), 1, "elianiva".into(), 1)
             .unwrap();
 
         assert_eq!(res, 1);
+
+        let res2 = model
+            .put_point("dadjoke".into(), 1, "elianiva".into(), 1)
+            .unwrap();
+
+        assert_eq!(res2, 2);
     }
 }
