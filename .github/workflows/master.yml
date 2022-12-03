@@ -26,7 +26,10 @@ jobs:
           extra_args: --debug --only-verified
 
       - name: Prerequisite
-        run: apt-get update && apt-get upgrade -y && apt-get install -y make sqlite3 curl ca-certificates openssl
+        run: >
+          apt-get update && apt-get upgrade -y && 
+          apt-get install -y make sqlite3 curl ca-certificates openssl &&
+          cargo install grcov
 
       - name: Build
         run: make build

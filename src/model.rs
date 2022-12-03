@@ -1,16 +1,19 @@
 use rusqlite::{params, Connection};
 
+#[derive(Debug)]
 pub struct PointEntry {
     pub user_id: i64,
     pub user_name: String,
     pub points: i64,
 }
 
+#[derive(Debug)]
 pub struct Points {
     pub topic: String,
     pub entries: Vec<PointEntry>,
 }
 
+#[derive(Debug)]
 pub struct ModelError {
     pub message: String,
     pub query: String,
@@ -55,20 +58,23 @@ impl Model {
         user_id: i64,
         user_name: String,
         point: i64,
-    ) -> Result<usize, ModelError> {
-        let query = "INSERT INTO points \
-            (topic, user_id, user_name, point, created_at, updated_at) \
-            VALUES \
-            (?, ?, ?, ?, date(), date()) \
-            ON CONFLICT (topic, user_id) \
-            DO UPDATE SET \
-                point = point + ?, \
-                updated_at = date()";
+    ) -> Result<i64, ModelError> {
+        let query = r#"INSERT INTO points 
+            (topic, user_id, user_name, point, created_at, updated_at
+            VALUES
+            (?, ?, ?, ?, date(), date())
+            RETURNING point
+            ON CONFLICT (topic, user_id)
+            DO UPDATE SET
+                point = point + ?,
+                updated_at = date()
+            RETURNING point"#;
 
         match self
             .database
-            .execute(query, params![topic, user_id, user_name, point])
-        {
+            .query_row(query, params![topic, user_id, user_name, point], |row| {
+                row.get(0)
+            }) {
             Ok(updated) => Ok(updated),
             Err(err) => {
                 return Err(ModelError {
@@ -152,5 +158,31 @@ impl Model {
         }
 
         Ok(topics_vec)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::model::Model;
+    use rusqlite::Connection;
+
+    const DATABASE: Connection = Connection::open_in_memory().unwrap();
+
+    #[test]
+    fn test_migrate() {
+        let model = Model::new(DATABASE);
+
+        model.migrate().unwrap();
+    }
+
+    #[test]
+    fn test_put_new_point() {
+        let model = Model::new(DATABASE);
+
+        let res = model
+            .put_point("dadjoke".into(), 1, "elianiva".into(), 1)
+            .unwrap();
+
+        assert_eq!(res, 1);
     }
 }

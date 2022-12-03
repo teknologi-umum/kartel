@@ -1,10 +1,11 @@
 mod commands;
 mod model;
 
-use commands::Commands;
 use rusqlite::Connection;
 use std::env;
 use teloxide::prelude::*;
+use teloxide::types::BotCommand;
+use teloxide::utils::command::{BotCommands, CommandDescriptions, ParseError};
 
 #[tokio::main]
 async fn main() {
@@ -17,6 +18,31 @@ async fn main() {
     let bot = Bot::new(bot_token);
 
     Commands::repl(bot, handler).await;
+}
+
+#[derive(BotCommands, Clone)]
+#[command(rename_rule = "lowercase", description = "")]
+enum Commands {
+    #[command(description = "")]
+    Points { name: String, point: String },
+    #[command(description = "")]
+    Bapack { point: String },
+}
+
+impl Commands {}
+
+impl BotCommands for Commands {
+    fn parse(s: &str, bot_username: &str) -> Result<Self, ParseError> {
+        todo!()
+    }
+
+    fn descriptions() -> CommandDescriptions<'static> {
+        todo!()
+    }
+
+    fn bot_commands() -> Vec<BotCommand> {
+        todo!()
+    }
 }
 
 async fn handler(bot: Bot, msg: Message, cmd: Commands) -> ResponseResult<()> {
