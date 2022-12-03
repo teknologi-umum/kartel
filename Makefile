@@ -21,5 +21,7 @@ test.mold:
 
 clean:
 	cargo clean
+	rm *.profraw
+	rm lcov.info
 clean.mold:
 	mold -run cargo clean

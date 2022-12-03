@@ -29,15 +29,27 @@ jobs:
         run: >
           apt-get update && apt-get upgrade -y && 
           apt-get install -y make sqlite3 curl ca-certificates openssl &&
+          rustup component add llvm-tools-preview &&
           cargo install grcov
 
       - name: Build
-        run: make build
+        run: make build-dev
+        env:
+          RUSTFLAGS: "-Cinstrument-coverage"
+          LLVM_PROFILE_FILE: "kartel-%p-%m.profraw"
 
       - name: Test
         run: make test
+        env:
+          RUSTFLAGS: "-Cinstrument-coverage"
+          LLVM_PROFILE_FILE: "kartel-%p-%m.profraw"
 
       - name: Collect coverage
-        run: grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing -o ./target/debug/coverage/
+        run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
+        env:
+          RUSTFLAGS: "-Cinstrument-coverage"
+          LLVM_PROFILE_FILE: "kartel-%p-%m.profraw"
 
       - uses: codecov/codecov-action@v3
+        with:
+          files: lcov.info
