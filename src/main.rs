@@ -1,27 +1,27 @@
-mod commands;
+use teloxide::prelude::*;
 
-use commands::Commands;
-use std::env;
-use teloxide::prelude::{Bot, Message, ResponseResult};
+mod commands;
+mod handlers;
 
 #[tokio::main]
 async fn main() {
-    let bot_token = env::var("BOT_TOKEN").unwrap_or(String::from(""));
-    let sentry_dsn = env::var("SENTRY_DSN").unwrap_or(String::from(""));
+    let bot = Bot::new("token");
 
-    let bot = Bot::new(bot_token);
+    println!("kartel started...");
 
-    teloxide::repl(bot, handler).await;
+    commands::Command::repl(bot, handlers).await;
+
+    ()
 }
-async fn handler(bot: Bot, msg: Message, cmd: Commands) -> ResponseResult<()> {
+
+async fn handlers(bot: Bot, msg: Message, cmd: crate::commands::Command) -> ResponseResult<()> {
     match cmd {
-        Commands::Bapack => {
-            // TODO: implement handler here (call to other file, not here)
+        commands::Command::Help => handlers::help::help_handler(&bot, &msg).await?,
+        commands::Command::Test(args) => {
+            handlers::test::test_handler(&bot, &msg, args.try_into()?).await?
         }
-        Commands::Points => {
-            // TODO: implement handler here (call to other file, not here)
-        }
-    };
+        commands::Command::Reply => handlers::reply::reply_handler(&bot, &msg).await?,
+    }
 
     Ok(())
 }
