@@ -3,12 +3,13 @@ use teloxide::prelude::*;
 use crate::handlers::error::SendIfError;
 
 mod commands;
+mod config;
 mod deps;
 mod handlers;
 
 #[tokio::main]
 async fn main() {
-    let bot = Bot::new("token");
+    let bot = Bot::new(config::config().bot_token.clone());
 
     println!("kartel started...");
 
