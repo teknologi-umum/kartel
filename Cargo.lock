@@ -136,6 +136,58 @@ version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b098575ebe77cb6d14fc7f32749631a6e44edbef6b796f89b020e99ba20d425"
 dependencies = [
+ "axum-core",
+ "bytes",
+ "form_urlencoded",
+ "futures-util",
+ "http 1.4.0",
+ "http-body 1.0.1",
+ "http-body-util",
+ "hyper 1.8.1",
+ "hyper-util",
+ "itoa",
+ "matchit",
+ "memchr",
+ "mime",
+ "percent-encoding",
+ "pin-project-lite",
+ "serde_core",
+ "serde_json",
+ "serde_path_to_error",
+ "serde_urlencoded",
+ "sync_wrapper",
+ "tokio",
+ "tower",
+ "tower-layer",
+ "tower-service",
+ "tracing",
+]
+
+[[package]]
+name = "axum-core"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59446ce19cd142f8833f856eb31f3eb097812d1479ab224f54d72428ca21ea22"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "http 1.4.0",
+ "http-body 1.0.1",
+ "http-body-util",
+ "mime",
+ "pin-project-lite",
+ "sync_wrapper",
+ "tower-layer",
+ "tower-service",
+ "tracing",
+]
+
+[[package]]
+name = "backtrace"
+version = "0.3.66"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b098575ebe77cb6d14fc7f32749631a6e44edbef6b796f89b020e99ba20d425"
+dependencies = [
  "addr2line",
  "cc",
  "cfg-if",
@@ -462,6 +514,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.111",
+]
+
+[[package]]
+name = "dptree"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d81175dab5ec79c30e0576df2ed2c244e1721720c302000bb321b107e82e265c"
+dependencies = [
+ "futures",
 ]
 
 [[package]]
@@ -859,6 +920,7 @@ dependencies = [
  "http 1.4.0",
  "http-body 1.0.1",
  "httparse",
+ "httpdate",
  "itoa",
  "pin-project-lite",
  "pin-utils",
@@ -1306,6 +1368,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "configrs",
+ "dptree 0.3.0",
  "log",
  "pretty_env_logger",
  "regex",
@@ -1434,6 +1497,12 @@ name = "match_cfg"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
+
+[[package]]
+name = "matchit"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
 
 [[package]]
 name = "matchit"
@@ -2521,6 +2590,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_path_to_error"
+version = "0.1.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10a9ff822e371bb5403e391ecd83e182e0e77ba7f6fe0160b795797109d1b457"
+dependencies = [
+ "itoa",
+ "serde",
+ "serde_core",
+]
+
+[[package]]
 name = "serde_spanned"
 version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2819,7 +2899,7 @@ dependencies = [
  "axum",
  "bytes",
  "derive_more",
- "dptree",
+ "dptree 0.5.1",
  "either",
  "futures",
  "log",
@@ -2834,7 +2914,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util",
- "tower 0.5.2",
+ "tower",
  "tower-http",
  "url",
 ]
@@ -3178,6 +3258,7 @@ dependencies = [
  "tokio",
  "tower-layer",
  "tower-service",
+ "tracing",
 ]
 
 [[package]]
@@ -3196,6 +3277,7 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
+ "tracing",
 ]
 
 [[package]]

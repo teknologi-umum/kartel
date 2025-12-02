@@ -17,7 +17,10 @@ static CONFIG: LazyLock<Config> = LazyLock::new(|| {
 const ENV_PREFIX: &str = "KARTEL_";
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct Config {
+pub(crate) struct Config {
     #[serde(alias = "KARTEL_BOT_TOKEN", default)]
     pub bot_token: String,
+
+    #[serde(alias = "KARTEL_WEBHOOK_PORT")]
+    pub webhook_port: u16,
 }

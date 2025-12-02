@@ -7,7 +7,8 @@ edition = "2024"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-teloxide = { version = "0.17", features = ["macros"] }
+teloxide = { version = "0.17", features = ["macros", "webhooks-axum"] }
+dptree = "0.3"
 # diesel = { version = "2.0.2", features = ["sqlite"] }
 
 serde = { version = "1", features = ["derive"] }
