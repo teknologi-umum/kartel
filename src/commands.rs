@@ -34,4 +34,7 @@ pub(crate) enum Command {
 
     #[command(description = "Reply")]
     Reply,
+
+    #[command(description = "Fetch prices of some moneys. Optional date param: `YYYY-MM-DD`.")]
+    Forex(Args),
 }

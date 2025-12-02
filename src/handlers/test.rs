@@ -42,7 +42,7 @@ impl TryFrom<Args> for TestArgs {
     }
 }
 
-pub(crate) async fn test_handler(bot: &Bot, msg: &Message, args: TestArgs) -> ResponseResult<()> {
+pub(crate) async fn test_handler(bot: Bot, msg: &Message, args: TestArgs) -> ResponseResult<()> {
     bot.send_message(msg.chat.id, format!("test: {} {}", args.x, args.y))
         .await?;
 

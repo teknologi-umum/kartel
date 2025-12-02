@@ -1,6 +1,7 @@
+use async_trait::async_trait;
 use std::{fmt::Debug, sync::Arc};
-
-use teloxide::{ApiError, RequestError};
+use teloxide::prelude::*;
+use teloxide::{ApiError, Bot, RequestError, prelude::Requester};
 
 use thiserror::Error;
 
@@ -17,6 +18,25 @@ pub enum HandlerError {
 
     #[error("API call return error response: {0}")]
     ApiError(anyhow::Error),
+}
+
+#[async_trait]
+pub(crate) trait SendIfError {
+    /// Send any error from call chains to telegram bot, otherwise only result sent.
+    async fn send_if_err(self, bot: Bot, msg: &Message) -> Self;
+}
+
+#[async_trait]
+impl SendIfError for Result<(), HandlerError> {
+    async fn send_if_err(self, bot: Bot, msg: &Message) -> Self {
+        if let Some(err) = self.as_ref().err() {
+            let err_msg = format!("{}", err);
+            let _ = bot.send_message(msg.chat.id, err_msg).await;
+            return self;
+        }
+
+        self
+    }
 }
 
 pub trait AsClientError<T> {
