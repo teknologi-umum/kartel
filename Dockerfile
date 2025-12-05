@@ -1,10 +1,33 @@
-# syntax=docker/dockerfile:1
-FROM rust:1.65.0-bullseye as build-env
-WORKDIR /app
-COPY . .
-RUN --mount=type=cache,target=/usr/local/cargo/registry cargo build --release
+ARG APP_NAME=kartel
+ARG PORT=3000
 
-FROM debian:bullseye as run-env
-RUN apt-get update && apt-get install -y curl ca-certificates openssl
-COPY --from=build-env /app/target/debug/kartel /usr/bin/kartel
-CMD ["/usr/bin/kartel"]
+### STAGE 1: install cargo chef
+FROM rust:1.91.1 AS chef
+ARG APP_NAME
+RUN cargo install cargo-chef
+WORKDIR /${APP_NAME}
+
+### STAGE 2: create cargo chef recipe.json
+FROM chef AS planner
+ARG APP_NAME
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+### STAGE 3: build dependencies from recipe.json and build the app
+FROM chef AS builder
+ARG APP_NAME
+COPY --from=planner /${APP_NAME}/recipe.json recipe.json
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --recipe-path recipe.json
+# Build application
+COPY . .
+RUN cargo build --release
+
+### STAGE 4: run the app
+# We do not need the Rust toolchain to run the binary!
+FROM gcr.io/distroless/cc-debian12
+ARG APP_NAME
+ARG PORT
+EXPOSE ${PORT}
+COPY --from=builder /${APP_NAME}/target/release/${APP_NAME} ${APP_NAME}
+ENTRYPOINT [ "./kartel" ]
