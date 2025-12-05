@@ -19,5 +19,9 @@ The function signature for the handler is:
 ```rust
 pub(crate) async fn forex_handler(bot: Bot, msg: &Message, args: Args) -> Result<(), HandlerError>
 ```
+but if your command doesn't pass arguments, just omit it:
+```rust
+pub(crate) async fn forex_handler(bot: Bot, msg: &Message) -> Result<(), HandlerError>
+```
 
 Write conversion from `Args` to your handler type.
