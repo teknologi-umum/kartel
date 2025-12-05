@@ -12,7 +12,10 @@ Bot username is: @kartel_teknumbot
 
 For webhook endpoint, it hits into this app hosted in a VPS.
 
-## Add New Command
+## Running locally
+To run it locally, you need to add env vars defined in `src/config.rs` in struct `Config`. The aliases are the env vars name.
+
+## Adding New Command
 All commands defined inside `src/commands.rs` file. Simply add your new command(s) there and create the handler in `src/handlers/your-command-handler.rs`. Then you can register command -> handler mapping in `src/main.rs` file.
 
 The function signature for the handler is:
