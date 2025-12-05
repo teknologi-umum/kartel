@@ -5,13 +5,14 @@ use teloxide::{
     update_listeners::webhooks,
 };
 
-use crate::handlers::error::SendIfError;
+use crate::error::SendIfError;
 
 mod commands;
 mod config;
-use config::config;
 mod deps;
+mod error;
 mod handlers;
+use config::config;
 
 static WEBHOOK_ENDPOINT: &'static str = "https://api.mfirhas.com/webhook";
 

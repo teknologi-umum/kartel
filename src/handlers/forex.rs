@@ -5,8 +5,8 @@ use chrono::{DateTime, NaiveDate, Utc};
 use anyhow::{Context, anyhow};
 use teloxide::{prelude::*, types::ParseMode};
 
-use super::error::HandlerError;
-use crate::{commands::Args, deps::http_client::http_client, handlers::error::AsInternalError};
+use crate::error::HandlerError;
+use crate::{commands::Args, deps::http_client::http_client, error::AsInternalError};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::LazyLock;

@@ -1,8 +1,8 @@
 use anyhow::{Context, anyhow};
 use teloxide::prelude::*;
 
-use super::error::HandlerError;
-use crate::{commands::Args, handlers::error::AsClientError};
+use crate::error::HandlerError;
+use crate::{commands::Args, error::AsClientError};
 
 // example of command handler handling arguments and parsing it into handler arguments type
 

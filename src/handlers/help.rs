@@ -1,4 +1,4 @@
-use super::error::HandlerError;
+use crate::error::HandlerError;
 use teloxide::prelude::*;
 use teloxide::utils::command::BotCommands;
 

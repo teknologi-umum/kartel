@@ -15,4 +15,9 @@ For webhook endpoint, it hits into this app hosted in a VPS.
 ## Add New Command
 All commands defined inside `src/commands.rs` file. Simply add your new command(s) there and create the handler in `src/handlers/your-command-handler.rs`. Then you can register command -> handler mapping in `src/main.rs` file.
 
-The function signature for the handler is `pub(crate) async fn forex_handler(bot: Bot, msg: &Message, args: Args) -> Result<(), HandlerError>`. Write conversion from `Args` to your handler type.
+The function signature for the handler is:
+```rust
+pub(crate) async fn forex_handler(bot: Bot, msg: &Message, args: Args) -> Result<(), HandlerError>
+```
+
+Write conversion from `Args` to your handler type.
