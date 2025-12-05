@@ -14,6 +14,7 @@ mod deps;
 mod handlers;
 
 static WEBHOOK_ENDPOINT: &'static str = "https://api.mfirhas.com/webhook";
+
 #[tokio::main]
 async fn main() {
     let bot = Bot::new(config().bot_token.clone());
