@@ -9,19 +9,16 @@ async fn main() {
     let bot_token = env::var("BOT_TOKEN").unwrap_or(String::from(""));
     let sentry_dsn = env::var("SENTRY_DSN").unwrap_or(String::from(""));
 
-    // TODO: open sqlite database here
-
-    let _guard = sentry::init(sentry_dsn);
     let bot = Bot::new(bot_token);
 
     teloxide::repl(bot, handler).await;
 }
 async fn handler(bot: Bot, msg: Message, cmd: Commands) -> ResponseResult<()> {
     match cmd {
-        Commands::Bapack { point } => {
+        Commands::Bapack => {
             // TODO: implement handler here (call to other file, not here)
         }
-        Commands::Points { name, point } => {
+        Commands::Points => {
             // TODO: implement handler here (call to other file, not here)
         }
     };
