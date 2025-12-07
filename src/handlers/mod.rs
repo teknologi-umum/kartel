@@ -1,8 +1,6 @@
-/// handlers is the implementation details of commands
-///
-///
-pub(crate) mod help;
-pub(crate) mod reply;
-pub(crate) mod test;
-
+//! handlers is the implementation details of commands
+//!
+//!
+//!
 pub(crate) mod forex;
+pub(crate) mod help;
