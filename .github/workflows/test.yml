@@ -4,6 +4,8 @@ on:
   workflow_run:
     workflows: ["check"]
     types: [completed]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   test:
