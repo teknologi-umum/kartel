@@ -29,12 +29,6 @@ pub(crate) enum Command {
     #[command(description = "Show this help message")]
     Help,
 
-    #[command(description = "Test commands")]
-    Test(Args),
-
-    #[command(description = "Reply")]
-    Reply,
-
     #[command(description = "Fetch prices of some moneys. Optional date param: `YYYY-MM-DD`.")]
     Forex(Args),
 }
