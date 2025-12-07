@@ -1,8 +1,6 @@
-name: kartel check
+name: check
 
 on:
-  push:
-    branches: [master]
   pull_request:
     branches: [master]
 
@@ -12,13 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-      # TODO implement GitGuardian secrets leaks scan
-      # - name: GitGuardian scan
+      - name: TruffleHog Leaks Scan
+        uses: trufflesecurity/trufflehog@v3.91.2
+        with:
+          extra_args: --only-verified
 
       - name: Cache run data
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -30,11 +32,10 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.91.1
+          toolchain: stable
           override: true
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
         with:
           command: check
-

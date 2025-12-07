@@ -1,4 +1,4 @@
-name: kartel build & deploy
+name: deploy
 
 on:
   workflow_dispatch:
@@ -10,7 +10,9 @@ on:
 
 jobs:
   build:
-    name: Build the kartel (TODO)
+    name: Build
+    # TODO
 
   deploy:
-    name: Deploy the kartel (TODO)
+    name: Deploy
+    # TODO
