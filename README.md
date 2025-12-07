@@ -2,31 +2,29 @@
 
 Telegram bot in rust. Comes from `karat` and `telegram`. `kar-tel`.
 
-Main libs:
+This bot use [Teloxide](https://github.com/teloxide/teloxide) framework to interact with Telegram.
 
-- [teloxide](https://github.com/teloxide/teloxide)
-- [tokio](https://github.com/tokio-rs/tokio)
-- [diesel-sqlite](https://github.com/teloxide/teloxide)
+There are 2 mode, local/dev mode which use long polling and prod mode which use webhook.
 
-## Development
+Local/dev mode run in local which only need telegram bot token to run, while prod mode requires bot token and webhook endpoint for telegram to hit.
 
-1. To install diesel CLI, you need to install client first if running debian based distrib
+Bot username is: @kartel_teknumbot
 
-```sh
-sudo apt install libsqlite3-dev default-libmysqlclient-dev libpq-dev
+For webhook endpoint, it hits into this app hosted in a VPS.
+
+## Running locally
+To run it locally, you need to add env vars defined in `src/config.rs` in struct `Config`. The aliases are the env vars name.
+
+## Adding New Command
+All commands defined inside `src/commands.rs` file. Simply add your new command(s) there and create the handler in `src/handlers/your-command-handler.rs`. Then you can register command -> handler mapping in `src/main.rs` file.
+
+The function signature for the handler is:
+```rust
+pub(crate) async fn forex_handler(bot: Bot, msg: &Message, args: Args) -> Result<(), HandlerError>
+```
+but if your command doesn't pass arguments, just omit it:
+```rust
+pub(crate) async fn forex_handler(bot: Bot, msg: &Message) -> Result<(), HandlerError>
 ```
 
-then run
-
-```
-cargo install diesel_cli
-```
-
-## Running in dev
-
-Create `docker-compose-dev.yml` from `docker-compose-dev-example.yml` then just run:
-
-```
-docker build -t karteldev . && docker compose -f docker-compose-dev.yml up
-```
-or run `./run.sh`.
+Write conversion from `Args` to your handler type.
