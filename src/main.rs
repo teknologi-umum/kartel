@@ -1,7 +1,7 @@
 use teloxide::{
     dispatching::{UpdateFilterExt, UpdateHandler},
     prelude::*,
-    types::Update,
+    types::{ParseMode, Update},
     update_listeners::webhooks,
 };
 
@@ -70,10 +70,51 @@ async fn handlers(bot: Bot, msg: Message, cmd: crate::commands::Command) -> Resp
         commands::Command::Help => handlers::help::help_handler(bot, &msg).await?,
 
         commands::Command::Forex(args) => {
+            // TODO
             handlers::forex::forex_handler(bot.clone(), &msg, args)
                 .await
                 .send_if_err(bot, &msg)
                 .await?
+        }
+
+        commands::Command::Rates(args) => {
+            // TODO
+            bot.send_message(msg.chat.id, "Coming soon...!")
+                .parse_mode(ParseMode::Html)
+                .await?;
+            ()
+        }
+
+        commands::Command::Gold(args) => {
+            // TODO
+            bot.send_message(msg.chat.id, "Coming soon...!")
+                .parse_mode(ParseMode::Html)
+                .await?;
+            ()
+        }
+
+        commands::Command::Silver(args) => {
+            // TODO
+            bot.send_message(msg.chat.id, "Coming soon...!")
+                .parse_mode(ParseMode::Html)
+                .await?;
+            ()
+        }
+
+        commands::Command::Zakat(args) => {
+            // TODO
+            bot.send_message(msg.chat.id, "Coming soon...!")
+                .parse_mode(ParseMode::Html)
+                .await?;
+            ()
+        }
+
+        commands::Command::Stock(args) => {
+            // TODO
+            bot.send_message(msg.chat.id, "Coming soon...!")
+                .parse_mode(ParseMode::Html)
+                .await?;
+            ()
         }
     }
 
