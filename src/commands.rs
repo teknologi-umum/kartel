@@ -29,6 +29,49 @@ pub(crate) enum Command {
     #[command(description = "Show this help message")]
     Help,
 
-    #[command(description = "Fetch prices of some moneys. Optional date param: `YYYY-MM-DD`.")]
+    #[command(description = r#"
+        Fetch prices of some moneys.
+        Params:
+            - Forex pair: USD/IDR, support mixes cases.
+        Optional Params:
+            - Date of rate: YYYY-MM-DD.
+        "#)]
     Forex(Args),
+
+    #[command(description = r#"
+        Fetch money rates.
+        Optional params:
+            - Base currency, e.g. IDR, default to USD.
+            - Date of rates: YYYY-MM-DD
+        "#)]
+    Rates(Args),
+
+    #[command(description = r#"
+        Fetch Gold prices in multiple fiat currencies.
+        Optional params:
+            - Date of rates: YYYY-MM-DD
+        "#)]
+    Gold(Args),
+
+    #[command(description = r#"
+        Fetch Silver prices in multiple fiat currencies.
+        Optional params:
+            - Date of rates: YYYY-MM-DD
+        "#)]
+    Silver(Args),
+
+    #[command(description = r#"
+        Fetch Zakat information, such current nishab in Gold and Silver.
+        Optional params:
+            - Amount: your current holding in fiat, and bot will calculate if you reach nishab. E.g. IDR 1,000,000,000.02
+            - Date of start: Date of you reach nishab, bot will calculate the end of the year in hijri calendar mapped into Gregory calendar.
+        "#)]
+    Zakat(Args),
+
+    #[command(description = r#"
+        Fetch information of a stock. Default to author picks.
+        Optional params:
+            - Stock ticker: e.g. BBCA
+        "#)]
+    Stock(Args),
 }
