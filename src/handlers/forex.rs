@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::LazyLock;
 
 static FOREX_FORMAT: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[A-Z]{3}(?:/[A-Z]{3})?$").expect("failed initializing forex regex")
+    Regex::new(r"(?i)^[A-Z]{3}/[A-Z]{3}$").expect("failed initializing forex regex")
 });
 
 static FOREX_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/forex/convert";
@@ -69,8 +69,8 @@ impl TryFrom<Args> for ForexArgs {
             )));
         }
 
-        let left = pair_parts[0].to_string();
-        let right = pair_parts[1].to_string();
+        let left = pair_parts[0].to_uppercase();
+        let right = pair_parts[1].to_uppercase();
 
         let date = if parts.len() >= 2 {
             let date_str = parts[1];
@@ -119,6 +119,68 @@ mod test_forex {
             Utc.with_ymd_and_hms(2022, 2, 2, 0, 0, 0).unwrap(),
             ret.date.unwrap()
         );
+    }
+
+    #[test]
+    fn lowercase_parsing_test() {
+        let args = Args("usd/idr".into());
+
+        let ret: ForexArgs = args.try_into().unwrap();
+        assert_eq!("USD".to_string(), ret.left);
+        assert_eq!("IDR".to_string(), ret.right);
+        assert_eq!(None, ret.date);
+    }
+
+    #[test]
+    fn mixed_case_parsing_test() {
+        let args = Args("IdR/Usd".into());
+
+        let ret: ForexArgs = args.try_into().unwrap();
+        assert_eq!("IDR".to_string(), ret.left);
+        assert_eq!("USD".to_string(), ret.right);
+        assert_eq!(None, ret.date);
+
+        let args = Args("btc/IDR 2023-12-25".into());
+
+        let ret: ForexArgs = args.try_into().unwrap();
+        assert_eq!("BTC".to_string(), ret.left);
+        assert_eq!("IDR".to_string(), ret.right);
+        assert_eq!(
+            Utc.with_ymd_and_hms(2023, 12, 25, 0, 0, 0).unwrap(),
+            ret.date.unwrap()
+        );
+    }
+
+    #[test]
+    fn invalid_format_single_currency() {
+        let args = Args("USD".into());
+        let ret: Result<ForexArgs, _> = args.try_into();
+        assert!(ret.is_err());
+    }
+
+    #[test]
+    fn invalid_format_wrong_length() {
+        let args = Args("US/IDR".into());
+        let ret: Result<ForexArgs, _> = args.try_into();
+        assert!(ret.is_err());
+
+        let args = Args("USD/IDRR".into());
+        let ret: Result<ForexArgs, _> = args.try_into();
+        assert!(ret.is_err());
+    }
+
+    #[test]
+    fn invalid_format_no_separator() {
+        let args = Args("USDIDR".into());
+        let ret: Result<ForexArgs, _> = args.try_into();
+        assert!(ret.is_err());
+    }
+
+    #[test]
+    fn invalid_format_invalid_separator() {
+        let args = Args("USD&IDR".into());
+        let ret: Result<ForexArgs, _> = args.try_into();
+        assert!(ret.is_err());
     }
 }
 
