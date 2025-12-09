@@ -3,4 +3,8 @@
 //!
 //!
 pub(crate) mod forex;
+
+#[cfg(test)]
+mod forex_test;
+
 pub(crate) mod help;
