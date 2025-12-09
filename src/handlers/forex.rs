@@ -3,6 +3,7 @@ use std::{collections::HashMap, fmt::Display};
 use chrono::{DateTime, NaiveDate, Utc};
 
 use anyhow::{Context, anyhow};
+use teloxide::sugar::request::RequestReplyExt;
 use teloxide::{prelude::*, types::ParseMode};
 
 use crate::error::HandlerError;
@@ -348,6 +349,7 @@ async fn single_pair(
 
 async fn base_rates(bot: Bot, msg: &Message, base_args: BaseRatesArg) -> Result<(), HandlerError> {
     bot.send_message(msg.chat.id, "menyusul".to_string())
+        .reply_to(msg.id)
         .parse_mode(ParseMode::Html)
         .await?;
 
