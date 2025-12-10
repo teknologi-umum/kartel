@@ -70,7 +70,6 @@ async fn handlers(bot: Bot, msg: Message, cmd: crate::commands::Command) -> Resp
         commands::Command::Help => handlers::help::help_handler(bot, &msg).await?,
 
         commands::Command::Forex(args) => {
-            // TODO
             handlers::forex::forex_handler(bot.clone(), &msg, args)
                 .await
                 .send_if_err(bot, &msg)

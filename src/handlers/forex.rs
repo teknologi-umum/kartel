@@ -21,7 +21,9 @@ static FOREX_PAIR_FORMAT: LazyLock<Regex> = LazyLock::new(|| {
 static FOREX_FORMAT: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)^[a-z]{3}$").expect("failed initializing forex regex"));
 
-static FOREX_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/forex/convert";
+static FOREX_CONVERT_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/forex/convert";
+
+static FOREX_RATES_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/forex/rates";
 
 static EMPTY_ARGS_ERROR: &'static str = "Arguments must be provided.\nArguments are: \n1. Pair of forex: e.g. \"USD/IDR\", \n2. (Optional) Date of rate, e.g.\"USD/IDR 2022-02-02\" ";
 
@@ -29,7 +31,7 @@ static EMPTY_ARGS_ERROR: &'static str = "Arguments must be provided.\nArguments 
 pub enum ForexResponse {
     EmptyArgResponse(Vec<ForexResp<ConvertResponseData>>),
     SinglePairArgResponse(ForexResp<ConvertResponseData>),
-    BaseRatesResponse,
+    BaseRatesResponse(ForexResp<RatesResponseData>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,6 +50,15 @@ pub struct ConvertResponseData {
     pub to: HashMap<String, String>,
     pub code: String,
     pub symbol: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RatesResponseData {
+    pub rates_date: DateTime<Utc>,
+
+    pub base: String,
+
+    pub rates: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone)]
@@ -173,11 +184,14 @@ impl TryFrom<Args> for ForexArgs {
             return Ok(ForexArgs::SinglePair(ret));
         }
 
-        if let Ok(ret) = BaseRatesArg::try_from(value) {
+        if let Ok(ret) = BaseRatesArg::try_from(value.clone()) {
             return Ok(ForexArgs::BaseRates(ret));
         }
 
-        Err(HandlerError::InvalidArguments(anyhow!("Invalid arguments")))
+        Err(HandlerError::InvalidArguments(anyhow!(
+            "Invalid arguments: {}",
+            value.0
+        )))
     }
 }
 
@@ -245,7 +259,38 @@ impl Display for ForexResponse {
                 }
             }
 
-            Self::BaseRatesResponse => String::from("todo: return forex list of rates"),
+            Self::BaseRatesResponse(resp) => {
+                if let Some(ref err) = resp.error {
+                    format!("forex api error: {}", err)
+                } else {
+                    let base_rates_ret = match resp.data {
+                        Some(ref data) if data.rates.is_empty() => {
+                            format!("invalid response empty data")
+                        }
+
+                        Some(ref data) => {
+                            let mut content: String = format!(
+                                "Rates with base {} on {}:\n",
+                                &data.base,
+                                data.rates_date.format("%Y-%m-%d %H:%M:%S %:z").to_string()
+                            );
+                            for (k, v) in &data.rates {
+                                let key = if k == &data.base.to_ascii_lowercase() {
+                                    &format!("<b>{}</b>", k.to_ascii_uppercase())
+                                } else {
+                                    k
+                                };
+                                content.push_str(format!("\n{}: {}", key, v).as_str());
+                            }
+
+                            content
+                        }
+
+                        None => String::from("no data returned"),
+                    };
+                    base_rates_ret
+                }
+            }
         };
 
         write!(f, "{}", ret)
@@ -267,25 +312,19 @@ pub(crate) async fn forex_handler(bot: Bot, msg: &Message, args: Args) -> Result
 async fn empty_arg(bot: Bot, msg: &Message) -> Result<(), HandlerError> {
     let http_client = http_client().clone();
 
-    let usd_idr_params: Vec<(&str, &str)> = vec![("from", "USD 1"), ("to", "IDR")];
-
-    let btc_usd_params: Vec<(&str, &str)> = vec![("from", "BTC 1"), ("to", "USD")];
-
-    let xau_usd_params: Vec<(&str, &str)> = vec![("from", "XAU 1"), ("to", "USD")];
-
-    let xag_idr_params: Vec<(&str, &str)> = vec![("from", "XAG 1"), ("to", "IDR")];
-
     let query_params: Vec<Vec<(&str, &str)>> = vec![
-        usd_idr_params,
-        btc_usd_params,
-        xau_usd_params,
-        xag_idr_params,
+        vec![("from", "USD 1"), ("to", "IDR")],
+        vec![("from", "BTC 1"), ("to", "USD")],
+        vec![("from", "XAU 1"), ("to", "USD")],
+        vec![("from", "XAU 1"), ("to", "IDR")],
+        vec![("from", "XAG 1"), ("to", "USD")],
+        vec![("from", "XAG 1"), ("to", "IDR")],
     ];
 
     let mut resp: Vec<ForexResp<ConvertResponseData>> = vec![];
     for query in &query_params {
         let ret: ForexResp<ConvertResponseData> = http_client
-            .get(FOREX_ENDPOINT)
+            .get(FOREX_CONVERT_ENDPOINT)
             .query(query)
             .send()
             .await
@@ -301,6 +340,7 @@ async fn empty_arg(bot: Bot, msg: &Message) -> Result<(), HandlerError> {
         msg.chat.id,
         ForexResponse::EmptyArgResponse(resp).to_string(),
     )
+    .reply_to(msg.id)
     .parse_mode(ParseMode::Html)
     .await?;
 
@@ -328,7 +368,7 @@ async fn single_pair(
     };
 
     let ret: ForexResp<ConvertResponseData> = http_client
-        .get(FOREX_ENDPOINT)
+        .get(FOREX_CONVERT_ENDPOINT)
         .query(&query_params)
         .send()
         .await
@@ -341,6 +381,7 @@ async fn single_pair(
         msg.chat.id,
         ForexResponse::SinglePairArgResponse(ret).to_string(),
     )
+    .reply_to(msg.id)
     .parse_mode(ParseMode::Html)
     .await?;
 
@@ -348,10 +389,35 @@ async fn single_pair(
 }
 
 async fn base_rates(bot: Bot, msg: &Message, base_args: BaseRatesArg) -> Result<(), HandlerError> {
-    bot.send_message(msg.chat.id, "menyusul".to_string())
-        .reply_to(msg.id)
-        .parse_mode(ParseMode::Html)
+    let http_client = http_client().clone();
+
+    let mut query_params: Vec<(&str, String)> = vec![];
+
+    if base_args.base.to_ascii_lowercase().as_str() != "usd" {
+        query_params.push(("base", base_args.base));
+    }
+
+    if let Some(date) = base_args.date {
+        query_params.push(("date", date.format("%Y-%m-%d").to_string()));
+    }
+
+    let ret: ForexResp<RatesResponseData> = http_client
+        .get(FOREX_RATES_ENDPOINT)
+        .query(&query_params)
+        .send()
+        .await
+        .context("failed calling forex rates api")
+        .as_internal_err()?
+        .json()
         .await?;
 
-    Ok(()) // TODO
+    bot.send_message(
+        msg.chat.id,
+        ForexResponse::BaseRatesResponse(ret).to_string(),
+    )
+    .reply_to(msg.id)
+    .parse_mode(ParseMode::Html)
+    .await?;
+
+    Ok(())
 }
