@@ -274,7 +274,23 @@ impl Display for ForexResponse {
                                 &data.base,
                                 data.rates_date.format("%Y-%m-%d %H:%M:%S %:z").to_string()
                             );
+
+                            let mut first: Vec<(String, String)> = Vec::new();
+                            let mut second: Vec<(String, String)> = Vec::new();
+
                             for (k, v) in &data.rates {
+                                if k == &data.base.to_ascii_lowercase() {
+                                    first.push((k.clone(), v.clone()));
+                                } else {
+                                    second.push((k.clone(), v.clone()));
+                                }
+                            }
+
+                            second.sort_by(|a, b| a.0.cmp(&b.0));
+
+                            first.append(&mut second);
+
+                            for (k, v) in &first {
                                 let key = if k == &data.base.to_ascii_lowercase() {
                                     &format!("<b>{}</b>", k.to_ascii_uppercase())
                                 } else {
