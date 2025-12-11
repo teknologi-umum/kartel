@@ -30,4 +30,4 @@ ARG APP_NAME
 ARG PORT
 EXPOSE ${PORT}
 COPY --from=builder /${APP_NAME}/target/release/${APP_NAME} ${APP_NAME}
-ENTRYPOINT [ "./kartel" ]
+ENTRYPOINT ["sh", "-c", "./${APP_NAME}"]
