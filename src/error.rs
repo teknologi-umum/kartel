@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use std::{fmt::Debug, sync::Arc};
 use teloxide::prelude::*;
+use teloxide::sugar::request::RequestReplyExt;
 use teloxide::{ApiError, Bot, RequestError, prelude::Requester};
 
 use thiserror::Error;
@@ -31,7 +32,10 @@ impl SendIfError for Result<(), HandlerError> {
     async fn send_if_err(self, bot: Bot, msg: &Message) -> Self {
         if let Some(err) = self.as_ref().err() {
             let err_msg = format!("{}", err);
-            let _ = bot.send_message(msg.chat.id, err_msg).await;
+            let _ = bot
+                .send_message(msg.chat.id, err_msg)
+                .reply_to(msg.id)
+                .await;
             return self;
         }
 
