@@ -10,6 +10,7 @@ on:
 
 env:
   APP_NAME: kartel
+  MAIN_PATH: /home/mfirhas/kartel
   HTTP_PORT: 3000
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -60,54 +61,64 @@ jobs:
             APP_NAME=${{ env.APP_NAME }}
             PORT=${{ env.HTTP_PORT }}
    
-  ##TODO setup deployment server
-  # deploy:
-  #   name: Deploy
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   if: github.event.inputs.confirm == 'yes'
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v6
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event.inputs.confirm == 'yes'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
       
-  #     - name: Copy docker-compose.yml
-  #       uses: appleboy/scp-action@v1
-  #       with:
-  #         host: ${{ secrets.VPS_HOST }}
-  #         username: ${{ secrets.VPS_USERNAME }}
-  #         key: ${{ secrets.VPS_SSH_KEY }}
-  #         port: ${{ secrets.VPS_PORT }}
-  #         source: "docker-compose.yml"
-  #         target: "~/${{ env.APP_NAME }}"
+      - name: Copy docker-compose.yml
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: "docker-compose.yml"
+          target: "~/${{ env.APP_NAME }}"
       
-  #     - name: Deployment
-  #       uses: appleboy/ssh-action@v1.0.3
-  #       with:
-  #         host: ${{ secrets.VPS_HOST }}
-  #         username: ${{ secrets.VPS_USERNAME }}
-  #         key: ${{ secrets.VPS_SSH_KEY }}
-  #         port: ${{ secrets.VPS_PORT }}
-  #         script: |
-  #           cd ~/${{ env.APP_NAME }}                       
-  #           echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+      - name: Deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ MAIN_PATH }}/docker-compose.yml
+            chown mfirhas:mfirhas ${{ MAIN_PATH }}/docker-compose.yml
+            chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
 
-  #           echo "pulling docker image..."
-  #           docker compose pull
+            MAIN_PATH="${{ env.MAIN_PATH }}"
+            GHCR_PAT="${{ secrets.GHCR_PAT }}"
+            GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}"
 
-  #           echo "tearing down current running container..."
-  #           docker compose down
+            su - mfirhas << EOF
+            cd $MAIN_PATH
 
-  #           echo "starting up from new image..."
-  #           docker compose up -d --remove-orphans
-  #           sleep 5
+            echo $GHCR_PAT | docker login ghcr.io -u $GHCR_USERNAME --password-stdin
 
-  #           echo "docker status"
-  #           docker compose ps
+            echo "pulling docker image..."
+            docker compose pull
 
-  #           echo "docker logs"
-  #           docker compose logs --tail=10 kartel
+            echo "tearing down current running container..."
+            docker compose down
 
-  #           echo "clean up old images"
-  #           docker image prune -f
+            echo "starting up from new image..."
+            docker compose up -d --remove-orphans
+            sleep 5
 
-  #           echo "🎉🎉🎉 DEPLOYMENT COMPLETE 🎉🎉🎉"
+            echo "docker status"
+            docker compose ps
+
+            echo "docker logs"
+            docker compose logs --tail=10 kartel
+
+            echo "clean up old images"
+            docker image prune -f
+
+            echo "🎉🎉🎉 DEPLOYMENT COMPLETE 🎉🎉🎉"
+            EOF
