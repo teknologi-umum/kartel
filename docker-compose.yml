@@ -1,33 +1,17 @@
+version: '3.8'
+
 services:
   kartel:
-    build: .
-    environment:
-      BOT_TOKEN: ${BOT_TOKEN}
-      ENVIRONMENT: production
-      SENTRY_DSN: ${SENTRY_DSN}
-    platform: linux/amd64
-    healthcheck:
-      test: curl -f http://localhost:3000/ || exit 1
-      interval: 30s
-      timeout: 25s
-      retries: 5
-    deploy:
-      mode: replicated
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-        delay: 30s
-        max_attempts: 10
-        window: 120s
-      resources:
-        limits:
-          memory: 300MB
-          cpus: '1'
-        reservations:
-          memory: 10MB
-          cpus: '0.10'
-    logging:
-      driver: json-file
-      options:
-        max-size: 25M
-        max-file: 3
+    image: ghcr.io/teknologi-umum/kartel:latest
+    container_name: kartel
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ${HOME}/.env
+    networks:
+      - kartel-network
+
+networks:
+  kartel-network:
+    driver: bridge
