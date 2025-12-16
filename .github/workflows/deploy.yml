@@ -88,8 +88,8 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ MAIN_PATH }}/docker-compose.yml
-            chown mfirhas:mfirhas ${{ MAIN_PATH }}/docker-compose.yml
+            cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ env.MAIN_PATH }}/docker-compose.yml
+            chown mfirhas:mfirhas ${{ env.MAIN_PATH }}/docker-compose.yml
             chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
 
             MAIN_PATH="${{ env.MAIN_PATH }}"
