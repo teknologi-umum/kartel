@@ -76,23 +76,7 @@ async fn handlers(bot: Bot, msg: Message, cmd: crate::commands::Command) -> Resp
                 .await?
         }
 
-        commands::Command::Rates(args) => {
-            // TODO
-            bot.send_message(msg.chat.id, "Coming soon...!")
-                .parse_mode(ParseMode::Html)
-                .await?;
-            ()
-        }
-
-        commands::Command::Gold(args) => {
-            // TODO
-            bot.send_message(msg.chat.id, "Coming soon...!")
-                .parse_mode(ParseMode::Html)
-                .await?;
-            ()
-        }
-
-        commands::Command::Silver(args) => {
+        commands::Command::PM(args) => {
             // TODO
             bot.send_message(msg.chat.id, "Coming soon...!")
                 .parse_mode(ParseMode::Html)
