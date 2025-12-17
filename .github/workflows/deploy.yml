@@ -96,25 +96,23 @@ jobs:
             GHCR_PAT="${{ secrets.GHCR_PAT }}"
             GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}"
 
-            cd $MAIN_PATH
-
             echo "$GHCR_PAT" | sudo -u mfirhas /usr/bin/docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
             echo "pulling docker image..."
-            sudo -u mfirhas /usr/bin/docker compose pull
+            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml pull
 
             echo "tearing down current running container..."
-            sudo -u mfirhas /usr/bin/docker compose down
+            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml down
 
             echo "starting up from new image..."
-            sudo -u mfirhas /usr/bin/docker compose up -d --remove-orphans
+            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml up -d --remove-orphans
             sleep 5
 
             echo "docker status"
-            sudo -u mfirhas /usr/bin/docker compose ps
+            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml ps
 
             echo "docker logs"
-            sudo -u mfirhas /usr/bin/docker compose logs --tail=10 kartel
+            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml logs --tail=10 kartel
 
             echo "clean up old images"
             sudo -u mfirhas /usr/bin/docker image prune -f
