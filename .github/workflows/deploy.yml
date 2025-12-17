@@ -88,37 +88,35 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            sudo -u root cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ env.MAIN_PATH }}/docker-compose.yml
-            sudo -u root chown mfirhas:mfirhas ${{ env.MAIN_PATH }}/docker-compose.yml
-            sudo -u root chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
+            sudo cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ env.MAIN_PATH }}/docker-compose.yml
+            sudo chown mfirhas:mfirhas ${{ env.MAIN_PATH }}/docker-compose.yml
+            sudo chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
 
             MAIN_PATH="${{ env.MAIN_PATH }}"
             GHCR_PAT="${{ secrets.GHCR_PAT }}"
             GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}"
 
-            sudo -u mfirhas bash << EOF
             cd $MAIN_PATH
 
-            echo $GHCR_PAT | docker login ghcr.io -u $GHCR_USERNAME --password-stdin
+            echo "$GHCR_PAT" | sudo -u mfirhas /usr/bin/docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
             echo "pulling docker image..."
-            docker compose pull
+            sudo -u mfirhas /usr/bin/docker compose pull
 
             echo "tearing down current running container..."
-            docker compose down
+            sudo -u mfirhas /usr/bin/docker compose down
 
             echo "starting up from new image..."
-            docker compose up -d --remove-orphans
+            sudo -u mfirhas /usr/bin/docker compose up -d --remove-orphans
             sleep 5
 
             echo "docker status"
-            docker compose ps
+            sudo -u mfirhas /usr/bin/docker compose ps
 
             echo "docker logs"
-            docker compose logs --tail=10 kartel
+            sudo -u mfirhas /usr/bin/docker compose logs --tail=10 kartel
 
             echo "clean up old images"
-            docker image prune -f
+            sudo -u mfirhas /usr/bin/docker image prune -f
 
             echo "🎉🎉🎉 DEPLOYMENT COMPLETE 🎉🎉🎉"
-            EOF
