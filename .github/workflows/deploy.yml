@@ -88,15 +88,15 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ env.MAIN_PATH }}/docker-compose.yml
-            chown mfirhas:mfirhas ${{ env.MAIN_PATH }}/docker-compose.yml
-            chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
+            sudo -u root cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ env.MAIN_PATH }}/docker-compose.yml
+            sudo -u root chown mfirhas:mfirhas ${{ env.MAIN_PATH }}/docker-compose.yml
+            sudo -u root chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
 
             MAIN_PATH="${{ env.MAIN_PATH }}"
             GHCR_PAT="${{ secrets.GHCR_PAT }}"
             GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}"
 
-            su - mfirhas << EOF
+            sudo -u mfirhas bash << EOF
             cd $MAIN_PATH
 
             echo $GHCR_PAT | docker login ghcr.io -u $GHCR_USERNAME --password-stdin
