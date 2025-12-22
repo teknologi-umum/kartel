@@ -77,6 +77,10 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:pfm-prod-cd
 
+      - name: Check Connectivity
+        run: |
+          tailscale ping ubuntu
+
       # - name: Copy docker-compose.yml
       #   uses: appleboy/scp-action@v1
       #   with:
