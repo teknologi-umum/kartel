@@ -65,4 +65,13 @@ Optional params:
         "#
     )]
     Stock(Args),
+
+    #[command(description = r#"Remind me."#)]
+    RemindMe(Args),
+
+    #[command(description = r#"Consumer Price Index data"#)]
+    CPI(Args),
+
+    #[command(description = r#"sPoNgEbOb"#)]
+    SpongeBob(Args),
 }

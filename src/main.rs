@@ -99,6 +99,30 @@ async fn handlers(bot: Bot, msg: Message, cmd: crate::commands::Command) -> Resp
                 .await?;
             ()
         }
+
+        commands::Command::RemindMe(args) => {
+            // TODO
+            bot.send_message(msg.chat.id, "Coming soon...!")
+                .parse_mode(ParseMode::Html)
+                .await?;
+            ()
+        }
+
+        commands::Command::CPI(args) => {
+            // TODO
+            bot.send_message(msg.chat.id, "Coming soon...!")
+                .parse_mode(ParseMode::Html)
+                .await?;
+            ()
+        }
+
+        commands::Command::SpongeBob(args) => {
+            // TODO
+            bot.send_message(msg.chat.id, "Coming soon...!")
+                .parse_mode(ParseMode::Html)
+                .await?;
+            ()
+        }
     }
 
     Ok(())
