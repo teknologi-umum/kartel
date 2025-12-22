@@ -70,51 +70,58 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
       
-      - name: Copy docker-compose.yml
-        uses: appleboy/scp-action@v1
+      - name: Login
+        uses: tailscale/github-action@v4
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          source: "docker-compose.yml"
-          target: "~/${{ env.APP_NAME }}"
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:pfm-prod-cd
+
+      # - name: Copy docker-compose.yml
+      #   uses: appleboy/scp-action@v1
+      #   with:
+      #     host: ${{ secrets.VPS_HOST }}
+      #     username: ${{ secrets.VPS_USERNAME }}
+      #     key: ${{ secrets.VPS_SSH_KEY }}
+      #     port: ${{ secrets.VPS_PORT }}
+      #     source: "docker-compose.yml"
+      #     target: "~/${{ env.APP_NAME }}"
       
-      - name: Deployment
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          script: |
-            sudo cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ env.MAIN_PATH }}/docker-compose.yml
-            sudo chown mfirhas:mfirhas ${{ env.MAIN_PATH }}/docker-compose.yml
-            sudo chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
+      # - name: Deployment
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.VPS_HOST }}
+      #     username: ${{ secrets.VPS_USERNAME }}
+      #     key: ${{ secrets.VPS_SSH_KEY }}
+      #     port: ${{ secrets.VPS_PORT }}
+      #     script: |
+      #       sudo cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ env.MAIN_PATH }}/docker-compose.yml
+      #       sudo chown mfirhas:mfirhas ${{ env.MAIN_PATH }}/docker-compose.yml
+      #       sudo chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
 
-            MAIN_PATH="${{ env.MAIN_PATH }}"
-            GHCR_PAT="${{ secrets.GHCR_PAT }}"
-            GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}"
+      #       MAIN_PATH="${{ env.MAIN_PATH }}"
+      #       GHCR_PAT="${{ secrets.GHCR_PAT }}"
+      #       GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}"
 
-            echo "$GHCR_PAT" | sudo -u mfirhas /usr/bin/docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+      #       echo "$GHCR_PAT" | sudo -u mfirhas /usr/bin/docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
-            echo "pulling docker image..."
-            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml pull
+      #       echo "pulling docker image..."
+      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml pull
 
-            echo "tearing down current running container..."
-            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml down
+      #       echo "tearing down current running container..."
+      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml down
 
-            echo "starting up from new image..."
-            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml up -d --remove-orphans
-            sleep 5
+      #       echo "starting up from new image..."
+      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml up -d --remove-orphans
+      #       sleep 5
 
-            echo "docker status"
-            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml ps
+      #       echo "docker status"
+      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml ps
 
-            echo "docker logs"
-            sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml logs --tail=10 kartel
+      #       echo "docker logs"
+      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml logs --tail=10 kartel
 
-            echo "clean up old images"
-            sudo -u mfirhas /usr/bin/docker image prune -f
+      #       echo "clean up old images"
+      #       sudo -u mfirhas /usr/bin/docker image prune -f
 
-            echo "🎉🎉🎉 DEPLOYMENT COMPLETE 🎉🎉🎉"
+      #       echo "🎉🎉🎉 DEPLOYMENT COMPLETE 🎉🎉🎉"
