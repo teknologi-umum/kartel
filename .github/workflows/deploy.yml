@@ -83,7 +83,7 @@ jobs:
 
       - name: Login
         run: |
-          ssh pfm@ubuntu
+          ssh -tt pfm@ubuntu
 
 
       # - name: Copy docker-compose.yml
