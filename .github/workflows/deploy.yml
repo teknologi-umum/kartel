@@ -94,7 +94,7 @@ jobs:
 
       - name: Login
         run: |
-          scp docker-compose.yml -tt pfm@ubuntu:/home/pfm/
+          scp docker-compose.yml pfm@ubuntu:/home/pfm/
 
       # - name: Copy docker-compose.yml
       #   uses: appleboy/scp-action@v1
