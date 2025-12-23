@@ -75,3 +75,12 @@ Optional params:
     #[command(description = r#"sPoNgEbOb"#)]
     SpongeBob(Args),
 }
+
+// SpongeBob case generator function
+pub fn spongebob_mock(input: &str) -> String {
+    input
+        .chars()
+        .enumerate()
+        .map(|(i, c)| if i % 2 == 0 { c.to_lowercase().to_string() } else { c.to_uppercase().to_string() })
+        .collect::<String>()
+}
