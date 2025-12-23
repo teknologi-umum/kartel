@@ -70,7 +70,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
       
-      - name: Tailscale
+      - name: Creating and Login to Ephemeral Node
         uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
@@ -80,6 +80,11 @@ jobs:
       - name: Check Connectivity
         run: |
           tailscale ping ubuntu
+
+      - name: Login
+        run: |
+          ssh pfm@ubuntu
+
 
       # - name: Copy docker-compose.yml
       #   uses: appleboy/scp-action@v1
