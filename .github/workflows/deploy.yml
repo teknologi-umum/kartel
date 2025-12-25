@@ -84,16 +84,16 @@ jobs:
         run: |
           tailscale ping ${{ env.TARGET_HOST }}
 
-      # - name: Configure SSH
-      #   run: |
-      #     mkdir -p ~/.ssh
-      #     cat >> ~/.ssh/config << 'EOF'
-      #     Host *
-      #       StrictHostKeyChecking no
-      #       UserKnownHostsFile=/dev/null
-      #       LogLevel ERROR
-      #     EOF
-      #     chmod 600 ~/.ssh/config
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          cat >> ~/.ssh/config << 'EOF'
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
+            LogLevel ERROR
+          EOF
+          chmod 600 ~/.ssh/config
 
       - name: Copy files into target host
         run: |
