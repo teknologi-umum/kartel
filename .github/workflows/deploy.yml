@@ -10,10 +10,12 @@ on:
 
 env:
   APP_NAME: kartel
-  MAIN_PATH: /home/mfirhas/kartel
-  HTTP_PORT: 3000
+  WEBHOOK_PORT: 1995
+  API_PORT: 1996
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  TARGET_HOST: 100.83.169.32
+  TARGET_USER: pfm
 
 jobs:
   build:
@@ -59,7 +61,8 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             APP_NAME=${{ env.APP_NAME }}
-            PORT=${{ env.HTTP_PORT }}
+            WEBHOOK_PORT=${{ env.WEBHOOK_PORT }}
+            API_PORT=${{ env.API_PORT }}
    
   deploy:
     name: Deploy
@@ -70,77 +73,35 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
       
-      - name: Creating and Login to Ephemeral Node
+      - name: Spawning Tailscale Ephemeral Node
         uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:pfm-prod-cd
+          tags: tag:kartel-prod-cd
 
-      - name: Check Connectivity
+      - name: Check connectivity to deployment target
         run: |
-          tailscale ping ubuntu
+          tailscale ping ${{ env.TARGET_HOST }}
 
-      - name: Configure SSH
+      # - name: Configure SSH
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     cat >> ~/.ssh/config << 'EOF'
+      #     Host *
+      #       StrictHostKeyChecking no
+      #       UserKnownHostsFile=/dev/null
+      #       LogLevel ERROR
+      #     EOF
+      #     chmod 600 ~/.ssh/config
+
+      - name: Copy files into target host
         run: |
-          mkdir -p ~/.ssh
-          cat >> ~/.ssh/config << 'EOF'
-          Host *
-            StrictHostKeyChecking no
-            UserKnownHostsFile=/dev/null
-            LogLevel ERROR
-          EOF
-          chmod 600 ~/.ssh/config
+          scp docker-compose.yml ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }}:/home/${{ env.TARGET_USER }}/${{ APP_NAME }}
+          scp run.sh ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }}:/home/${{ env.TARGET_USER }}/${{ APP_NAME }}
 
-      - name: Login
+      - name: Run app
         run: |
-          scp docker-compose.yml pfm@ubuntu:/home/pfm/
-
-      # - name: Copy docker-compose.yml
-      #   uses: appleboy/scp-action@v1
-      #   with:
-      #     host: ${{ secrets.VPS_HOST }}
-      #     username: ${{ secrets.VPS_USERNAME }}
-      #     key: ${{ secrets.VPS_SSH_KEY }}
-      #     port: ${{ secrets.VPS_PORT }}
-      #     source: "docker-compose.yml"
-      #     target: "~/${{ env.APP_NAME }}"
-      
-      # - name: Deployment
-      #   uses: appleboy/ssh-action@v1.0.3
-      #   with:
-      #     host: ${{ secrets.VPS_HOST }}
-      #     username: ${{ secrets.VPS_USERNAME }}
-      #     key: ${{ secrets.VPS_SSH_KEY }}
-      #     port: ${{ secrets.VPS_PORT }}
-      #     script: |
-      #       sudo cp ~/${{ env.APP_NAME }}/docker-compose.yml ${{ env.MAIN_PATH }}/docker-compose.yml
-      #       sudo chown mfirhas:mfirhas ${{ env.MAIN_PATH }}/docker-compose.yml
-      #       sudo chmod 640 ${{ env.MAIN_PATH }}/docker-compose.yml
-
-      #       MAIN_PATH="${{ env.MAIN_PATH }}"
-      #       GHCR_PAT="${{ secrets.GHCR_PAT }}"
-      #       GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}"
-
-      #       echo "$GHCR_PAT" | sudo -u mfirhas /usr/bin/docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-
-      #       echo "pulling docker image..."
-      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml pull
-
-      #       echo "tearing down current running container..."
-      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml down
-
-      #       echo "starting up from new image..."
-      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml up -d --remove-orphans
-      #       sleep 5
-
-      #       echo "docker status"
-      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml ps
-
-      #       echo "docker logs"
-      #       sudo -u mfirhas /usr/bin/docker compose -f $MAIN_PATH/docker-compose.yml logs --tail=10 kartel
-
-      #       echo "clean up old images"
-      #       sudo -u mfirhas /usr/bin/docker image prune -f
-
-      #       echo "🎉🎉🎉 DEPLOYMENT COMPLETE 🎉🎉🎉"
+          ssh -o StrictHostKeyChecking=no \
+            ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }} \
+            "cd ~/${{ env.TARGET_USER }}/${{ APP_NAME }} && chmod +x ~/${{ env.TARGET_USER }}/${{ APP_NAME }}/run.sh && ~/${{ env.TARGET_USER }}/${{ APP_NAME }}/run.sh"
