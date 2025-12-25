@@ -97,11 +97,11 @@ jobs:
 
       - name: Copy files into target host
         run: |
-          scp docker-compose.yml ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }}:/home/${{ env.TARGET_USER }}/${{ APP_NAME }}
-          scp run.sh ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }}:/home/${{ env.TARGET_USER }}/${{ APP_NAME }}
+          scp docker-compose.yml ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }}:/home/${{ env.TARGET_USER }}/${{ env.APP_NAME }}
+          scp run.sh ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }}:/home/${{ env.TARGET_USER }}/${{ env.APP_NAME }}
 
       - name: Run app
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }} \
-            "cd ~/${{ env.TARGET_USER }}/${{ APP_NAME }} && chmod +x ~/${{ env.TARGET_USER }}/${{ APP_NAME }}/run.sh && ~/${{ env.TARGET_USER }}/${{ APP_NAME }}/run.sh"
+            "cd ~/${{ env.TARGET_USER }}/${{ env.APP_NAME }} && chmod +x ~/${{ env.TARGET_USER }}/${{ env.APP_NAME }}/run.sh && ~/${{ env.TARGET_USER }}/${{ env.APP_NAME }}/run.sh"
