@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
   kartel:
     image: ghcr.io/teknologi-umum/kartel:latest
     container_name: kartel
-    restart: always
-    ports:
-      - "3000:3000"
-    env_file:
-      - /home/mfirhas/.env
+    restart: unless-stopped
+    environment:
+      - KARTEL_BOT_TOKEN=${KARTEL_BOT_TOKEN}
+      - KARTEL_WEBHOOK_PORT=${KARTEL_WEBHOOK_PORT}
+      - KARTEL_API_PORT=${KARTEL_API_PORT}
     networks:
       - kartel-network
 

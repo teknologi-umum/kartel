@@ -1,5 +1,6 @@
 ARG APP_NAME=kartel
-ARG PORT=3000
+ARG WEBHOOK_PORT=1995
+ARG API_PORT=1996
 
 ### STAGE 1: install cargo chef
 FROM rust:1.91.1 AS chef
@@ -24,7 +25,8 @@ RUN cargo build --release
 # We do not need the Rust toolchain to run the binary!
 FROM gcr.io/distroless/cc-debian12
 ARG APP_NAME
-ARG PORT
-EXPOSE ${PORT}
+ARG WEBHOOK_PORT
+ARG API_PORT
+EXPOSE ${WEBHOOK_PORT} ${API_PORT}
 COPY --from=builder /app/target/release/${APP_NAME} app
 ENTRYPOINT ["./app"]
