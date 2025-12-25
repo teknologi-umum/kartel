@@ -104,4 +104,4 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ env.TARGET_USER }}@${{ env.TARGET_HOST }} \
-            "cd ~/${{ env.TARGET_USER }}/${{ env.APP_NAME }} && chmod +x ~/${{ env.TARGET_USER }}/${{ env.APP_NAME }}/run.sh && ~/${{ env.TARGET_USER }}/${{ env.APP_NAME }}/run.sh"
+            "cd ~/${{ env.APP_NAME }} && chmod +x ~/${{ env.APP_NAME }}/run.sh && ~/${{ env.APP_NAME }}/run.sh"
