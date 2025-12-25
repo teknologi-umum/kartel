@@ -1,3 +1,7 @@
+use std::net::SocketAddr;
+
+use axum::{Router, routing::get};
+use reqwest::StatusCode;
 use teloxide::{
     dispatching::{UpdateFilterExt, UpdateHandler},
     prelude::*,
@@ -29,24 +33,39 @@ async fn main() {
 
     println!("kartel started in production mode...");
 
+    // Telegram webhook
     let webhook_url = WEBHOOK_ENDPOINT
         .parse()
         .expect("failed parsing webhook url");
+    let webhook_addr = ([0, 0, 0, 0], config().webhook_port).into();
+    let listener = webhooks::axum(
+        bot.clone(),
+        webhooks::Options::new(webhook_addr, webhook_url),
+    )
+    .await
+    .expect("failed starting webhook server");
+    let bot_server = async {
+        Dispatcher::builder(bot, handler())
+            .enable_ctrlc_handler()
+            .build()
+            .dispatch_with_listener(
+                listener,
+                LoggingErrorHandler::with_custom_text("An error from the update listener"),
+            )
+            .await;
+    };
 
-    let addr = ([0, 0, 0, 0], config().webhook_port).into();
+    // APIs
+    let api_addr: SocketAddr = ([0, 0, 0, 0], config().api_port).into();
+    let app = Router::new().route("/ping", get(|| async { (StatusCode::OK, "pong") }));
+    let api_listener = tokio::net::TcpListener::bind(api_addr).await.unwrap();
+    let api_server = async {
+        axum::serve(api_listener, app)
+            .await
+            .expect("failed starting api server");
+    };
 
-    let listener = webhooks::axum(bot.clone(), webhooks::Options::new(addr, webhook_url))
-        .await
-        .expect("Couldn't setup webhook");
-
-    Dispatcher::builder(bot, handler())
-        .enable_ctrlc_handler()
-        .build()
-        .dispatch_with_listener(
-            listener,
-            LoggingErrorHandler::with_custom_text("An error from the update listener"),
-        )
-        .await;
+    tokio::join!(bot_server, api_server);
 
     ()
 }

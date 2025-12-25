@@ -23,4 +23,7 @@ pub(crate) struct Config {
 
     #[serde(alias = "KARTEL_WEBHOOK_PORT")]
     pub webhook_port: u16,
+
+    #[serde(alias = "KARTEL_API_PORT")]
+    pub api_port: u16,
 }
