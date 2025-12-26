@@ -7,6 +7,9 @@ services:
       - KARTEL_BOT_TOKEN=${KARTEL_BOT_TOKEN}
       - KARTEL_WEBHOOK_PORT=${KARTEL_WEBHOOK_PORT}
       - KARTEL_API_PORT=${KARTEL_API_PORT}
+    ports:
+      - "1995:1995"
+      - "1996:1996"
     networks:
       - pfm-network
 
