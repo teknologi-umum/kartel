@@ -8,8 +8,8 @@ services:
       - KARTEL_WEBHOOK_PORT=${KARTEL_WEBHOOK_PORT}
       - KARTEL_API_PORT=${KARTEL_API_PORT}
     networks:
-      - kartel-network
+      - pfm-network
 
 networks:
-  kartel-network:
+  pfm-network:
     driver: bridge
