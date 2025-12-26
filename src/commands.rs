@@ -41,6 +41,14 @@ Arguments:
     "#)]
     Forex(Args),
 
+    #[command(description = r#"Convert between 2 currencies.
+Arguments:
+- <FROM_CODE> <FROM_AMOUNT>; <TO_CODE>
+- Example: USD 50,000; IDR
+- Semicolon separated.
+        "#)]
+    Convert(Args),
+
     #[command(
         description = r#"Fetch Precious Metals(Gold & Silver) prices in multiple fiat currencies.
 Optional params:
