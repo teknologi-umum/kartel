@@ -8,9 +8,28 @@ There are 2 mode, local/dev mode which use long polling and prod mode which use 
 
 Local/dev mode run in local which only need telegram bot token to run, while prod mode requires bot token and webhook endpoint for telegram to hit.
 
-Bot username is: @kartel_teknumbot
+Create Your bot and its token in telegram with @BotFather.
 
-For webhook endpoint, it hits into this app hosted in a VPS.
+Webhook endpoint will point to the server running this code. Make sure the endpoint is reachable publicly.
+
+## Codebase Structure
+This repo has simple project structure. They are:
+At the root:
+- Dockerfile
+- docker-compose.yml
+- Cargo.toml
+
+The source code is inside `src/` directory:
+- `main.rs`: entrypoint for executable.
+- `error.rs`: contains error handling helpers.
+- `config.rs`: contains configuration reading from env vars.
+- `commands.rs`: contains list of bot commands.
+- *handlers*: contains all commands implementations defined in `commands.rs`. Each implementation can be in single file or inside a directory, depends on complexity.
+- *deps*: contains all dependencies. Many dependencies are statics or `clone`. Dependencies as much as it can initialized once and used everywhere as global vars.
+
+Additional codes can be added into module like `utils` or `utils.rs`.
+
+No unsafe code allowed as per lint restriction.
 
 ## Running locally
 To run it locally, you need to add env vars defined in `src/config.rs` in struct `Config`. The aliases are the env vars name.
