@@ -39,16 +39,33 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Get version from tag or use master-<short-sha>
+        id: version
+        run: |
+          TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
+    
+          if [ -n "$TAG" ]; then
+            VERSION=$TAG
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "has_tag=true" >> $GITHUB_OUTPUT
+          else
+            BRANCH=${GITHUB_REF#refs/heads/}
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            VERSION="$BRANCH-$SHORT_SHA"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "has_tag=false" >> $GITHUB_OUTPUT
+          fi
+    
+          echo "Using version: $VERSION"
+      
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=latest,enable=true
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
