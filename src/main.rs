@@ -1,7 +1,8 @@
-use std::net::SocketAddr;
+#![forbid(unsafe_code)]
 
 use axum::{Router, routing::get};
 use reqwest::StatusCode;
+use std::net::SocketAddr;
 use teloxide::{
     dispatching::{UpdateFilterExt, UpdateHandler},
     prelude::*,
