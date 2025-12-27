@@ -17,6 +17,11 @@ env:
   TARGET_HOST: 100.83.169.32
   TARGET_USER: pfm
 
+# serialize deployment
+concurrency:
+  group: kartel-prod-cd
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build
