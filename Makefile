@@ -31,7 +31,11 @@ cover:
 	@echo "merging profraw -> profdata..."
 	@$(LLVM_PROFDATA) merge -sparse $(OUT_DIR)/*.profraw -o $(PROFDATA)
 	@echo "generating lcov with grcov..."
-	@grcov $(OUT_DIR) -s . --binary-path ./$(OUT_DIR) -t lcov --branch --ignore-not-existing -o $(LCOV) --ignore '/*' --ignore 'examples/*' --ignore 'tests/*' --ignore 'target/*'
+	@grcov $(OUT_DIR) -s . --binary-path ./$(OUT_DIR) -t lcov --branch --ignore-not-existing -o $(LCOV) \
+	    --ignore '/*' \
+	    --ignore 'examples/*' \
+	    --ignore 'tests/*' \
+	    --ignore 'target/*'
 	@echo "lcov saved to $(LCOV)"
 
 build-linux-gnu:
