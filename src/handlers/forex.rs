@@ -21,9 +21,9 @@ static FOREX_PAIR_FORMAT: LazyLock<Regex> = LazyLock::new(|| {
 static FOREX_FORMAT: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)^[a-z]{3}$").expect("failed initializing forex regex"));
 
-static FOREX_CONVERT_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/forex/convert";
+static FOREX_CONVERT_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/v2/forex/convert";
 
-static FOREX_RATES_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/forex/rates";
+static FOREX_RATES_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/v2/forex/rates";
 
 static EMPTY_ARGS_ERROR: &'static str = "Arguments must be provided.\nArguments are: \n1. Pair of forex: e.g. \"USD/IDR\", \n2. (Optional) Date of rate, e.g.\"USD/IDR 2022-02-02\" ";
 
