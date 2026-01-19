@@ -9,10 +9,10 @@ docker compose up -d --remove-orphans
 sleep 3
 
 echo "docker status"
-docker compose ps --filter "name=kartel"
+docker ps --filter "name=kartel"
 
 echo "docker logs"
-docker compose logs --tail=30 kartel
+docker logs --tail=30 kartel
 
 echo "clean up old images"
 docker image prune -f
