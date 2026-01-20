@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use rand::Rng as _;
 use teloxide::prelude::*;
 use teloxide::sugar::request::RequestReplyExt;
 
@@ -6,10 +7,11 @@ use crate::commands::Args;
 use crate::error::HandlerError;
 
 /// Convert text to sPoNgEbOb mocking case by alternating the case of ASCII alphabetic characters.
-/// Starts with lowercase for the first alphabetic character encountered.
+/// Randomly starts with uppercase or lowercase for the first alphabetic character, then alternates.
 fn to_spongebob(text: &str) -> String {
     let mut result = String::with_capacity(text.len());
-    let mut lowercase_next = true;
+    let mut rng = rand::thread_rng();
+    let mut lowercase_next = rng.r#gen::<bool>();
 
     for ch in text.chars() {
         if ch.is_ascii_alphabetic() {
