@@ -8,3 +8,5 @@ pub(crate) mod forex;
 mod forex_test;
 
 pub(crate) mod help;
+
+pub(crate) mod spongebob;
