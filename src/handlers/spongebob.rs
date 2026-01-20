@@ -4,6 +4,8 @@ use crate::commands::Args;
 use teloxide::prelude::*;
 use teloxide::sugar::request::RequestReplyExt;
 
+static NO_TEXT_ERROR: &str = "Provide text or reply to a message";
+
 /// Convert input text into sPoNgEbOb mocking case by alternating ASCII alphabetic character case,
 /// starting with lowercase on the first alphabetic character.
 pub(crate) fn to_spongebob(s: &str) -> String {
@@ -36,12 +38,12 @@ pub(crate) async fn spongebob_handler(bot: Bot, msg: &Message, args: Args) -> Re
         } else if let Some(caption) = reply.caption() {
             (caption.to_string(), reply.id)
         } else {
-            return Err(HandlerError::InvalidArguments(anyhow!("Provide text or reply to a message")));
+            return Err(HandlerError::InvalidArguments(anyhow!(NO_TEXT_ERROR)));
         }
     } else if !args.0.trim().is_empty() {
         (args.0.clone(), msg.id)
     } else {
-        return Err(HandlerError::InvalidArguments(anyhow!("Provide text or reply to a message")));
+        return Err(HandlerError::InvalidArguments(anyhow!(NO_TEXT_ERROR)));
     };
 
     let transformed = to_spongebob(&src_text);
