@@ -26,6 +26,7 @@ rust_decimal = "1.36"
 rust_decimal_macros = "1.36"
 regex = "1"
 async-trait = "0.1"
+rand = "0.8"
 
 # log = "0.4"
 # pretty_env_logger = "0.4"

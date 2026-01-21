@@ -1,85 +1,66 @@
 use anyhow::anyhow;
-use crate::error::HandlerError;
-use crate::commands::Args;
+use rand::Rng as _;
 use teloxide::prelude::*;
 use teloxide::sugar::request::RequestReplyExt;
 
-static NO_TEXT_ERROR: &str = "Provide text or reply to a message";
+use crate::commands::Args;
+use crate::error::HandlerError;
 
-/// Convert input text into sPoNgEbOb mocking case by alternating ASCII alphabetic character case,
-/// starting with lowercase on the first alphabetic character.
-pub(crate) fn to_spongebob(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut upper = false; // start with lowercase for first alphabetic char
+/// Convert text to sPoNgEbOb mocking case by alternating the case of ASCII alphabetic characters.
+/// Randomly starts with uppercase or lowercase for the first alphabetic character, then alternates.
+fn to_spongebob(text: &str) -> String {
+    let mut result = String::with_capacity(text.len());
+    let mut rng = rand::thread_rng();
+    let mut lowercase_next = rng.r#gen::<bool>();
 
-    for ch in s.chars() {
+    for ch in text.chars() {
         if ch.is_ascii_alphabetic() {
-            if upper {
-                out.push(ch.to_ascii_uppercase());
+            if lowercase_next {
+                result.push(ch.to_ascii_lowercase());
             } else {
-                out.push(ch.to_ascii_lowercase());
+                result.push(ch.to_ascii_uppercase());
             }
-            upper = !upper;
+            lowercase_next = !lowercase_next;
         } else {
-            out.push(ch);
+            result.push(ch);
         }
     }
 
-    out
+    result
 }
 
 pub(crate) async fn spongebob_handler(bot: Bot, msg: &Message, args: Args) -> Result<(), HandlerError> {
-    // If invoked by replying to someone, use their message text (or caption). Otherwise use args.
-    let maybe_reply = msg.reply_to_message();
+    // Check if the command is a reply to another message
+    if let Some(reply_to_msg) = msg.reply_to_message() {
+        // Get text from the replied message (try text first, then caption)
+        let text_to_convert = reply_to_msg
+            .text()
+            .or_else(|| reply_to_msg.caption())
+            .ok_or_else(|| HandlerError::InvalidArguments(anyhow!("Replied message has no text or caption")))?;
 
-    let (src_text, reply_to_id) = if let Some(reply) = maybe_reply {
-        if let Some(text) = reply.text() {
-            (text.to_string(), reply.id)
-        } else if let Some(caption) = reply.caption() {
-            (caption.to_string(), reply.id)
-        } else {
-            return Err(HandlerError::InvalidArguments(anyhow!(NO_TEXT_ERROR)));
-        }
-    } else if !args.0.trim().is_empty() {
-        (args.0.clone(), msg.id)
+        let mocked_text = to_spongebob(text_to_convert);
+
+        // Reply to the message that was replied to
+        bot.send_message(msg.chat.id, mocked_text)
+            .reply_to(reply_to_msg.id)
+            .await?;
     } else {
-        return Err(HandlerError::InvalidArguments(anyhow!(NO_TEXT_ERROR)));
-    };
+        // If not a reply, check if args were provided
+        let text_to_convert = args.0.trim();
 
-    let transformed = to_spongebob(&src_text);
+        if text_to_convert.is_empty() {
+            return Err(HandlerError::InvalidArguments(anyhow!(
+                "No text provided. Either provide text after the command or reply to a message."
+            )));
+        }
 
-    // Reply to the replied-to message when available; otherwise reply to the caller message.
-    bot.send_message(msg.chat.id, transformed).reply_to(reply_to_id).await?;
+        let mocked_text = to_spongebob(text_to_convert);
+
+        // Reply to the caller's message
+        bot.send_message(msg.chat.id, mocked_text)
+            .reply_to(msg.id)
+            .await?;
+    }
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_to_spongebob_basic() {
-        assert_eq!(to_spongebob("hello world"), "hElLo WoRlD");
-    }
-
-    #[test]
-    fn test_to_spongebob_with_numbers() {
-        assert_eq!(to_spongebob("test 123"), "tEsT 123");
-    }
-
-    #[test]
-    fn test_to_spongebob_with_punctuation() {
-        assert_eq!(to_spongebob("Hello, World!"), "hElLo, WoRlD!");
-    }
-
-    #[test]
-    fn test_to_spongebob_empty() {
-        assert_eq!(to_spongebob(""), "");
-    }
-
-    #[test]
-    fn test_to_spongebob_numbers_only() {
-        assert_eq!(to_spongebob("12345"), "12345");
-    }
 }

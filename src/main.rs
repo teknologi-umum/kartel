@@ -148,8 +148,7 @@ async fn handlers(bot: Bot, msg: Message, cmd: crate::commands::Command) -> Resp
             handlers::spongebob::spongebob_handler(bot.clone(), &msg, args)
                 .await
                 .send_if_err(bot, &msg)
-                .await?;
-            ()
+                .await?
         }
     }
 
