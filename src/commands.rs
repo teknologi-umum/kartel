@@ -44,7 +44,9 @@ Arguments:
     #[command(description = r#"Convert between 2 currencies.
 Arguments:
 - <FROM_CODE> <FROM_AMOUNT>; <TO_CODE>
+- <FROM_CODE> <FROM_AMOUNT>; <TO_CODE>; <DATE> (optional date in YYYY-MM-DD format)
 - Example: USD 50,000; IDR
+- Example with date: USD 50,000; IDR; 2022-02-02
 - Semicolon separated.
         "#)]
     Convert(Args),
