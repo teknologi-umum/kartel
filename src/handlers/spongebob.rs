@@ -56,9 +56,8 @@ pub(crate) async fn spongebob_handler(bot: Bot, msg: &Message, args: Args) -> Re
 
         let mocked_text = to_spongebob(text_to_convert);
 
-        // Reply to the caller's message
+        // Send the mocked text without replying to the command
         bot.send_message(msg.chat.id, mocked_text)
-            .reply_to(msg.id)
             .await?;
     }
 
