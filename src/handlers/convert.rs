@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use anyhow::{Context, anyhow};
+use chrono::{DateTime, NaiveDate, Utc};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::LazyLock;
@@ -35,6 +36,7 @@ pub(crate) struct ConvertArg {
     pub(super) from_currency: String,
     pub(super) from_amount: String,
     pub(super) to_currency: String,
+    pub(super) date: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone)]
@@ -52,9 +54,9 @@ impl TryFrom<Args> for ConvertArg {
         // Split by semicolon
         let parts: Vec<&str> = trimmed.split(';').collect();
         
-        if parts.len() != 2 {
+        if parts.len() < 2 || parts.len() > 3 {
             return Err(HandlerError::InvalidArguments(anyhow!(
-                "Arguments must be in format: <FROM_CODE> <AMOUNT> ; <TO_CODE>\nExample: USD 50,000 ; IDR"
+                "Arguments must be in format: <FROM_CODE> <AMOUNT> ; <TO_CODE> [; <DATE>]\nExample: USD 50,000 ; IDR\nWith date: USD 50,000 ; IDR ; 2022-02-02"
             )));
         }
 
@@ -97,10 +99,29 @@ impl TryFrom<Args> for ConvertArg {
             )));
         }
 
+        // Parse optional date (third part after second semicolon)
+        let date = if parts.len() == 3 {
+            let date_str = parts[2].trim();
+
+            let naive = NaiveDate::parse_from_str(date_str, "%Y-%m-%d").map_err(|e| {
+                HandlerError::InvalidArguments(anyhow!("invalid date {}, {}", date_str, e))
+            })?;
+
+            Some(DateTime::<Utc>::from_naive_utc_and_offset(
+                naive
+                    .and_hms_opt(0, 0, 0)
+                    .ok_or(HandlerError::InvalidArguments(anyhow!("invalid date")))?,
+                Utc,
+            ))
+        } else {
+            None
+        };
+
         Ok(ConvertArg {
             from_currency: from_currency.to_ascii_uppercase(),
             from_amount: from_amount.to_string(),
             to_currency: to_part.to_ascii_uppercase(),
+            date,
         })
     }
 }
@@ -211,10 +232,18 @@ async fn convert(
 
     let from_param = format!("{} {}", convert_arg.from_currency, convert_arg.from_amount);
     
-    let query_params = vec![
-        ("from", from_param.as_str()),
-        ("to", convert_arg.to_currency.as_str()),
-    ];
+    let query_params: Vec<(&str, String)> = if let Some(date) = convert_arg.date {
+        vec![
+            ("from", from_param),
+            ("to", convert_arg.to_currency),
+            ("date", date.format("%Y-%m-%d").to_string()),
+        ]
+    } else {
+        vec![
+            ("from", from_param),
+            ("to", convert_arg.to_currency),
+        ]
+    };
 
     let resp: ForexResp<ConvertResponseData> = http_client
         .get(CONVERT_ENDPOINT)
