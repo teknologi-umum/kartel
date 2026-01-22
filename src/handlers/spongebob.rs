@@ -29,14 +29,20 @@ fn to_spongebob(text: &str) -> String {
     result
 }
 
-pub(crate) async fn spongebob_handler(bot: Bot, msg: &Message, args: Args) -> Result<(), HandlerError> {
+pub(crate) async fn spongebob_handler(
+    bot: Bot,
+    msg: &Message,
+    args: Args,
+) -> Result<(), HandlerError> {
     // Check if the command is a reply to another message
     if let Some(reply_to_msg) = msg.reply_to_message() {
         // Get text from the replied message (try text first, then caption)
         let text_to_convert = reply_to_msg
             .text()
             .or_else(|| reply_to_msg.caption())
-            .ok_or_else(|| HandlerError::InvalidArguments(anyhow!("Replied message has no text or caption")))?;
+            .ok_or_else(|| {
+                HandlerError::InvalidArguments(anyhow!("Replied message has no text or caption"))
+            })?;
 
         let mocked_text = to_spongebob(text_to_convert);
 
@@ -57,13 +63,15 @@ pub(crate) async fn spongebob_handler(bot: Bot, msg: &Message, args: Args) -> Re
         let mocked_text = to_spongebob(text_to_convert);
 
         // Send the mocked text without replying to the command
-        bot.send_message(msg.chat.id, mocked_text)
-            .await?;
+        bot.send_message(msg.chat.id, mocked_text).await?;
     }
 
     // Delete the caller's message (the command message)
     // Ignore errors if bot lacks permission to delete messages
-    let _ = bot.delete_message(msg.chat.id, msg.id).await;
+    let ret = bot.delete_message(msg.chat.id, msg.id).await;
+    if let Err(err) = ret {
+        eprintln!("Cannot delete message: {}", err);
+    }
 
     Ok(())
 }
