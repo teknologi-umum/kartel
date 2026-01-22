@@ -14,7 +14,7 @@ use crate::handlers::forex::{ConvertResponseData, ForexResp};
 
 // format of a currency code: USD, IDR, BTC, XAU. Case insensitive.
 static CURRENCY_FORMAT: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)^[a-z]{3}$").expect("failed initializing currency regex"));
+    LazyLock::new(|| Regex::new(r"(?i)^[A-Z]{3}$").expect("failed initializing currency regex"));
 
 // format for amount: optional commas for thousands, optional decimal point
 static AMOUNT_FORMAT: LazyLock<Regex> = LazyLock::new(|| {
@@ -25,6 +25,10 @@ static CONVERT_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/v2/forex/co
 
 static EMPTY_ARGS_DEFAULT: &'static str = "USD 1";
 static EMPTY_ARGS_TO: &'static str = "IDR";
+
+// Fallback values for display
+static INVALID_CURRENCY: &'static str = "INVALID";
+static ZERO_AMOUNT: &'static str = "0";
 
 #[derive(Debug, Clone)]
 pub(crate) struct ConvertArg {
@@ -134,10 +138,10 @@ impl Display for ConvertResponse {
                         }
 
                         Some(ref data) => {
-                            let from_currency = data.from.keys().next().cloned().unwrap_or("INVALID".into());
-                            let from_amount = data.from.values().next().cloned().unwrap_or("0".into());
-                            let to_currency = data.to.keys().next().cloned().unwrap_or("INVALID".into());
-                            let to_amount = data.to.values().next().cloned().unwrap_or("0".into());
+                            let from_currency = data.from.keys().next().cloned().unwrap_or(INVALID_CURRENCY.into());
+                            let from_amount = data.from.values().next().cloned().unwrap_or(ZERO_AMOUNT.into());
+                            let to_currency = data.to.keys().next().cloned().unwrap_or(INVALID_CURRENCY.into());
+                            let to_amount = data.to.values().next().cloned().unwrap_or(ZERO_AMOUNT.into());
                             
                             format!(
                                 "Conversion on {}:\n<b>{} {} = {} {}</b>\nRate: {}",
@@ -207,9 +211,9 @@ async fn convert(
 
     let from_param = format!("{} {}", convert_arg.from_currency, convert_arg.from_amount);
     
-    let query_params: Vec<(&str, String)> = vec![
-        ("from", from_param),
-        ("to", convert_arg.to_currency),
+    let query_params = vec![
+        ("from", from_param.as_str()),
+        ("to", convert_arg.to_currency.as_str()),
     ];
 
     let resp: ForexResp<ConvertResponseData> = http_client
