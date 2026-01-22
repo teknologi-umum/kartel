@@ -63,7 +63,8 @@ pub(crate) async fn spongebob_handler(bot: Bot, msg: &Message, args: Args) -> Re
     }
 
     // Delete the caller's message (the command message)
-    bot.delete_message(msg.chat.id, msg.id).await?;
+    // Ignore errors if bot lacks permission to delete messages
+    let _ = bot.delete_message(msg.chat.id, msg.id).await;
 
     Ok(())
 }
