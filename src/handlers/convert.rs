@@ -18,9 +18,8 @@ static CURRENCY_FORMAT: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)^[a-z]{3}$").expect("failed initializing currency regex"));
 
 // format for amount: optional commas for thousands, optional decimal point
-static AMOUNT_FORMAT: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[\d,]+(?:\.\d+)?$").expect("failed initializing amount regex")
-});
+static AMOUNT_FORMAT: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[\d,]+(?:\.\d+)?$").expect("failed initializing amount regex"));
 
 static CONVERT_ENDPOINT: &'static str = "https://api.mfirhas.com/pfm/v2/forex/convert";
 
@@ -50,10 +49,10 @@ impl TryFrom<Args> for ConvertArg {
 
     fn try_from(value: Args) -> Result<Self, Self::Error> {
         let trimmed = value.0.trim();
-        
+
         // Split by semicolon
         let parts: Vec<&str> = trimmed.split(';').collect();
-        
+
         if parts.len() < 2 || parts.len() > 3 {
             return Err(HandlerError::InvalidArguments(anyhow!(
                 "Arguments must be in format: <FROM_CODE> <AMOUNT> ; <TO_CODE> [; <DATE>]\nExample: USD 50,000 ; IDR\nWith date: USD 50,000 ; IDR ; 2022-02-02"
@@ -65,7 +64,7 @@ impl TryFrom<Args> for ConvertArg {
 
         // Parse FROM part (currency code and amount)
         let from_tokens: Vec<&str> = from_part.split_whitespace().collect();
-        
+
         if from_tokens.len() != 2 {
             return Err(HandlerError::InvalidArguments(anyhow!(
                 "FROM part must have format: <CURRENCY_CODE> <AMOUNT>\nExample: USD 1000"
@@ -104,7 +103,11 @@ impl TryFrom<Args> for ConvertArg {
             let date_str = parts[2].trim();
 
             let naive = NaiveDate::parse_from_str(date_str, "%Y-%m-%d").map_err(|e| {
-                HandlerError::InvalidArguments(anyhow!("Invalid date format \"{}\": {}. Expected YYYY-MM-DD format.", date_str, e))
+                HandlerError::InvalidArguments(anyhow!(
+                    "Invalid date format \"{}\": {}. Expected YYYY-MM-DD format.",
+                    date_str,
+                    e
+                ))
             })?;
 
             Some(DateTime::<Utc>::from_naive_utc_and_offset(
@@ -159,18 +162,24 @@ impl Display for ConvertResponse {
                         }
 
                         Some(ref data) => {
-                            let from_currency = data.from.keys().next().cloned().unwrap_or(INVALID_CURRENCY.into());
-                            let from_amount = data.from.values().next().cloned().unwrap_or(ZERO_AMOUNT.into());
-                            let to_currency = data.to.keys().next().cloned().unwrap_or(INVALID_CURRENCY.into());
-                            let to_amount = data.to.values().next().cloned().unwrap_or(ZERO_AMOUNT.into());
-                            
+                            let from_currency = data
+                                .from
+                                .keys()
+                                .next()
+                                .cloned()
+                                .unwrap_or(INVALID_CURRENCY.into());
+                            let from_amount = data
+                                .from
+                                .values()
+                                .next()
+                                .cloned()
+                                .unwrap_or(ZERO_AMOUNT.into());
+
                             format!(
-                                "Conversion on {}:\n<b>{} {} = {} {}</b>\nRate: {}",
+                                "Conversion on {}:\n<b>{} {} = {}</b>",
                                 data.date.format("%Y-%m-%d %H:%M:%S %:z").to_string(),
                                 from_currency,
                                 from_amount,
-                                to_currency,
-                                to_amount,
                                 data.code,
                             )
                         }
@@ -185,7 +194,11 @@ impl Display for ConvertResponse {
     }
 }
 
-pub(crate) async fn convert_handler(bot: Bot, msg: &Message, args: Args) -> Result<(), HandlerError> {
+pub(crate) async fn convert_handler(
+    bot: Bot,
+    msg: &Message,
+    args: Args,
+) -> Result<(), HandlerError> {
     let arg: ConvertArgs = args.try_into()?;
 
     match arg {
@@ -197,10 +210,7 @@ pub(crate) async fn convert_handler(bot: Bot, msg: &Message, args: Args) -> Resu
 async fn empty_arg(bot: Bot, msg: &Message) -> Result<(), HandlerError> {
     let http_client = http_client().clone();
 
-    let query_params: Vec<(&str, &str)> = vec![
-        ("from", EMPTY_ARGS_DEFAULT),
-        ("to", EMPTY_ARGS_TO),
-    ];
+    let query_params: Vec<(&str, &str)> = vec![("from", EMPTY_ARGS_DEFAULT), ("to", EMPTY_ARGS_TO)];
 
     let resp: ForexResp<ConvertResponseData> = http_client
         .get(CONVERT_ENDPOINT)
@@ -212,30 +222,21 @@ async fn empty_arg(bot: Bot, msg: &Message) -> Result<(), HandlerError> {
         .json()
         .await?;
 
-    bot.send_message(
-        msg.chat.id,
-        ConvertResponse::Single(resp).to_string(),
-    )
-    .reply_to(msg.id)
-    .parse_mode(ParseMode::Html)
-    .await?;
+    bot.send_message(msg.chat.id, ConvertResponse::Single(resp).to_string())
+        .reply_to(msg.id)
+        .parse_mode(ParseMode::Html)
+        .await?;
 
     Ok(())
 }
 
-async fn convert(
-    bot: Bot,
-    msg: &Message,
-    convert_arg: ConvertArg,
-) -> Result<(), HandlerError> {
+async fn convert(bot: Bot, msg: &Message, convert_arg: ConvertArg) -> Result<(), HandlerError> {
     let http_client = http_client().clone();
 
     let from_param = format!("{} {}", convert_arg.from_currency, convert_arg.from_amount);
-    
-    let mut query_params: Vec<(&str, String)> = vec![
-        ("from", from_param),
-        ("to", convert_arg.to_currency),
-    ];
+
+    let mut query_params: Vec<(&str, String)> =
+        vec![("from", from_param), ("to", convert_arg.to_currency)];
 
     if let Some(date) = convert_arg.date {
         query_params.push(("date", date.format("%Y-%m-%d").to_string()));
@@ -251,13 +252,10 @@ async fn convert(
         .json()
         .await?;
 
-    bot.send_message(
-        msg.chat.id,
-        ConvertResponse::Single(resp).to_string(),
-    )
-    .reply_to(msg.id)
-    .parse_mode(ParseMode::Html)
-    .await?;
+    bot.send_message(msg.chat.id, ConvertResponse::Single(resp).to_string())
+        .reply_to(msg.id)
+        .parse_mode(ParseMode::Html)
+        .await?;
 
     Ok(())
 }
