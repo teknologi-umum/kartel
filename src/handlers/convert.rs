@@ -14,7 +14,7 @@ use crate::handlers::forex::{ConvertResponseData, ForexResp};
 
 // format of a currency code: USD, IDR, BTC, XAU. Case insensitive.
 static CURRENCY_FORMAT: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)^[A-Z]{3}$").expect("failed initializing currency regex"));
+    LazyLock::new(|| Regex::new(r"(?i)^[a-z]{3}$").expect("failed initializing currency regex"));
 
 // format for amount: optional commas for thousands, optional decimal point
 static AMOUNT_FORMAT: LazyLock<Regex> = LazyLock::new(|| {
