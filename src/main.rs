@@ -97,11 +97,10 @@ async fn handlers(bot: Bot, msg: Message, cmd: crate::commands::Command) -> Resp
         }
 
         commands::Command::Convert(args) => {
-            // TODO
-            bot.send_message(msg.chat.id, "Coming soon...!")
-                .parse_mode(ParseMode::Html)
-                .await?;
-            ()
+            handlers::convert::convert_handler(bot.clone(), &msg, args)
+                .await
+                .send_if_err(bot, &msg)
+                .await?
         }
 
         commands::Command::PM(args) => {
