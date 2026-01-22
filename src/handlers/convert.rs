@@ -104,7 +104,7 @@ impl TryFrom<Args> for ConvertArg {
             let date_str = parts[2].trim();
 
             let naive = NaiveDate::parse_from_str(date_str, "%Y-%m-%d").map_err(|e| {
-                HandlerError::InvalidArguments(anyhow!("invalid date {}, {}", date_str, e))
+                HandlerError::InvalidArguments(anyhow!("Invalid date format \"{}\": {}. Expected YYYY-MM-DD format.", date_str, e))
             })?;
 
             Some(DateTime::<Utc>::from_naive_utc_and_offset(
@@ -232,18 +232,14 @@ async fn convert(
 
     let from_param = format!("{} {}", convert_arg.from_currency, convert_arg.from_amount);
     
-    let query_params: Vec<(&str, String)> = if let Some(date) = convert_arg.date {
-        vec![
-            ("from", from_param),
-            ("to", convert_arg.to_currency),
-            ("date", date.format("%Y-%m-%d").to_string()),
-        ]
-    } else {
-        vec![
-            ("from", from_param),
-            ("to", convert_arg.to_currency),
-        ]
-    };
+    let mut query_params: Vec<(&str, String)> = vec![
+        ("from", from_param),
+        ("to", convert_arg.to_currency),
+    ];
+
+    if let Some(date) = convert_arg.date {
+        query_params.push(("date", date.format("%Y-%m-%d").to_string()));
+    }
 
     let resp: ForexResp<ConvertResponseData> = http_client
         .get(CONVERT_ENDPOINT)
