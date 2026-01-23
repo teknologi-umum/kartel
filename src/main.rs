@@ -17,6 +17,7 @@ mod config;
 mod deps;
 mod error;
 mod handlers;
+mod utils;
 use config::config;
 
 static WEBHOOK_ENDPOINT: &'static str = "https://api.mfirhas.com/webhook";
