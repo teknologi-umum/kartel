@@ -12,6 +12,7 @@ use crate::commands::Args;
 use crate::deps::http_client::http_client;
 use crate::error::{AsInternalError, HandlerError};
 use crate::handlers::forex::{ConvertResponseData, ForexResp};
+use crate::utils::money::format_money_str;
 
 // format of a currency code: USD, IDR, BTC, XAU. Case insensitive.
 static CURRENCY_FORMAT: LazyLock<Regex> =
@@ -175,11 +176,12 @@ impl Display for ConvertResponse {
                                 .cloned()
                                 .unwrap_or(ZERO_AMOUNT.into());
 
+                            let from_fmt = format_money_str(&from_currency, &from_amount);
+
                             format!(
-                                "Conversion on {}:\n<b>{} {} = {}</b>",
+                                "Conversion on {}:\n<b>{} = {}</b>",
                                 data.date.format("%Y-%m-%d %H:%M:%S %:z").to_string(),
-                                from_currency,
-                                from_amount,
+                                from_fmt,
                                 data.code,
                             )
                         }

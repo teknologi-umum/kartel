@@ -3,6 +3,16 @@
 version = 4
 
 [[package]]
+name = "accounting"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02d1c1ee38294fb8811aa880433a5557bbddbaa35ffbc456531f6325c687f50f"
+dependencies = [
+ "regex",
+ "rust_decimal",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1074,6 +1084,7 @@ dependencies = [
 name = "kartel"
 version = "0.1.0"
 dependencies = [
+ "accounting",
  "anyhow",
  "async-trait",
  "axum 0.7.9",
