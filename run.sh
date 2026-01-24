@@ -1,8 +1,8 @@
 echo "pulling docker image..."
 docker compose pull
 
-echo "tearing down current running container..."
-docker compose down
+# echo "tearing down current running container..."
+# docker compose down
 
 echo "starting up from new image..."
 docker compose up -d --remove-orphans
